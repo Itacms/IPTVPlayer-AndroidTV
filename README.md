@@ -1,6 +1,6 @@
-# Player IPTV Android
+# Player IPTV Android — baseado no index.html da conversa
 
-Este projeto usa uma Activity Android escrita em Kotlin e mantém `app/src/main/assets/index.html` como interface principal dentro de um WebView. Assim, a interface e a navegação existentes são preservadas; a lógica da interface e do player permanece em HTML/JavaScript.
+Este projeto Android Studio usa o `index.html` enviado na conversa como interface principal, empacotado em `app/src/main/assets/index.html`.
 
 ## Como compilar
 1. Abra esta pasta no Android Studio.
@@ -10,7 +10,7 @@ Este projeto usa uma Activity Android escrita em Kotlin e mantém `app/src/main/
 
 ## Observações
 - Este pacote contém o código-fonte do projeto, não um APK já compilado.
-- A Activity Android está em Kotlin. A interface e a reprodução continuam usando a camada HTML/WebView existente; uma conversão integral para UI Kotlin nativa/Media3 exigiria reconstruir e testar essas partes separadamente.
+- A reprodução continua usando a camada HTML/WebView existente. A migração completa para Media3/ExoPlayer exige integrar controles de reprodução nativos à interface; não está afirmado como concluído nesta versão.
 - A compatibilidade depende dos formatos, codecs, playlists e restrições dos servidores dos canais.
 
 

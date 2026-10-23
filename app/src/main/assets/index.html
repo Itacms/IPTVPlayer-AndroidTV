@@ -6,18 +6,14 @@
 <title>Player IPTV</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.13/hls.min.js"></script>
 <style>
-
-  #pmsg {
-    display: none !important;
-}
 :root{--logo-bg:#17171c;--logo-fg:#cfd3dd;--logo-sh:none;--bg:#0b0b0d;--panel:#1b1b20;--panel2:#26262d;--txt:#fff;--mut:#a7a7b2;--red:#e5262d}
 *{box-sizing:border-box}
 html,body{height:100%;margin:0;overflow:hidden;background:var(--bg);color:var(--txt);font:1.5vw/1.35 Poppins,Montserrat,Roboto,"Segoe UI",sans-serif}
 button,input{font:inherit;color:inherit}
 button{background:none;border:0;padding:0;text-align:left;cursor:pointer}
-button:focus,input:focus,select:focus{outline:none}
+button:focus,input:focus{outline:none}
 [data-f]{transition:transform .12s,box-shadow .12s,background .12s}
-[data-f]:focus,input:focus,select:focus{box-shadow:0 0 0 .22vw #fff;transform:scale(1.03);position:relative;z-index:3}
+[data-f]:focus{box-shadow:0 0 0 .22vw #fff;transform:scale(1.03);position:relative;z-index:3}
 svg{display:block;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 
 #app{position:relative;z-index:1;display:flex;height:100%}
@@ -99,7 +95,7 @@ svg{display:block;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:
 #v.full{display:block;position:fixed;z-index:8;inset:0;width:100%;height:100%;object-fit:contain}
 #pov{position:fixed;inset:0;z-index:9;display:none}
 #pov.on{display:block}
-#pmsg{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:4vw;font-size:1.8vw;pointer-events:none;display:none !important}
+#pmsg{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:4vw;font-size:1.8vw;pointer-events:none;display:none !important;opacity:0;visibility:hidden}
 #pmsg.err{color:#ff8a8f}
 #pbar{position:absolute;left:0;right:0;bottom:0;padding:8vh 4vw 3.5vh;background:linear-gradient(0deg,#000f 35%,transparent);display:flex;flex-direction:column;gap:1vh;transition:opacity .4s}
 #pbar.off{opacity:0}
@@ -368,11 +364,11 @@ function renderCfg(){
   main.innerHTML=`<div class="title">Configurações</div><div class="sub">${ch.length} canais de ${sources.filter(s=>s.on).length} lista(s) ativa(s)</div>
   <div class="sec">Listas de canais</div>
   ${rowsH}
-  <div class="field"><input id="sname" type="text" placeholder="Nome (opcional)" style="flex:.45"><input id="url" type="url" placeholder="https://exemplo.com/lista.m3u"><button class="pill main" data-f id="badd">Adicionar</button><button class="pill" data-f id="bfile">Arquivo</button><button class="pill" data-f id="breload">Atualizar</button></div>
+  <div class="field"><input id="sname" type="text" placeholder="Nome (opcional)" style="flex:.45"><input id="url" type="url" placeholder="https://exemplo.com/lista.m3u"><button class="pill main" data-f id="badd">Adicionar por URL</button><button class="pill" data-f id="bfile">Selecionar do dispositivo (M3U/TXT)</button><button class="pill" data-f id="breload">Atualizar listas</button></div>
   <div class="sub" id="lmsg" style="margin-top:1.4vh"></div>
-  <div class="sec">Player e diagnóstico</div>
-  <div class="field"><select id="playmode" data-f tabindex="0" style="background:#26262d;border:1px solid #444;border-radius:10px;padding:10px;color:#fff"><option value="auto">Automático (recomendado)</option><option value="hls">Forçar HLS.js</option><option value="native">HTML5 nativo</option></select><button class="pill main" data-f id="bplaymode">Aplicar</button><button class="pill" data-f id="bdiag">Ver diagnóstico</button></div>
-  <div class="sub" id="diagmsg" style="margin-top:1vh">O diagnóstico aparece aqui durante a reprodução.</div>
+  <div class="sec">Player</div>
+  <div class="field"><select id="playmode" style="background:#26262d;border:1px solid #444;border-radius:10px;padding:10px;color:#fff"><option value="auto">Automático (recomendado)</option><option value="hls">Forçar HLS.js</option><option value="native">HTML5 nativo</option></select><button class="pill main" data-f id="bplaymode">Aplicar</button><button class="pill" data-f id="bdiag">Ver diagnóstico</button></div>
+  <div class="sub" id="diagmsg" style="margin-top:1vh">Diagnóstico disponível.</div>
   <div class="sec">User-Agent</div>
   <div class="field"><input id="ua" type="text" placeholder="Padrão do aplicativo" value="${esc(ua)}"><button class="pill main" data-f id="bua">Salvar</button></div>
   <div class="field"><button class="pill" data-f data-ua="VLC/3.0.20 LibVLC/3.0.20">VLC</button><button class="pill" data-f data-ua="Lavf/60.16.100">FFmpeg</button><button class="pill" data-f data-ua="okhttp/4.12.0">OkHttp</button><button class="pill" data-f data-ua="">Padrão</button></div>
@@ -438,7 +434,7 @@ const _renderCfg=renderCfg;
 renderCfg=function(){_renderCfg();const e=document.querySelector('#playmode');if(e)e.value=playerMode;};
 
 /* ---------- player ---------- */
-const pm=(t,e)=>{const m=$('#pmsg');m.textContent=t;m.className=e?'err':''};
+const pm=(t,e)=>{const m=$('#pmsg');if(!m)return;m.textContent='';m.className='';m.style.display='none';m.style.opacity='0';m.style.visibility='hidden'};
 function load(i){
   if(!ch[i])return;
   if(loaded===i&&(hls||v.getAttribute('src')))return;
@@ -446,32 +442,33 @@ function load(i){
   if(hls){hls.destroy();hls=null}
   v.pause();v.removeAttribute('src');v.load();
   diag('Carregando canal: '+clean(c.name));
-  const isHls=/\.m3u8(?:$|[?#])/i.test(c.url)||/\/live\//i.test(c.url);
-  const useHls=playerMode==='hls'||(playerMode==='auto'&&isHls&&window.Hls&&Hls.isSupported());
-  if(useHls&&window.Hls&&Hls.isSupported()){
-    hls=new Hls({lowLatencyMode:false,enableWorker:true,fragLoadingMaxRetry:3,manifestLoadingMaxRetry:2,levelLoadingMaxRetry:3});
+  const isHls=/\.m3u8(?:$|[?#])/i.test(c.url)||/\/hls\//i.test(c.url)||/\.ts(?:$|[?#])/i.test(c.url)||/live/i.test(c.url);
+  const useHls=(playerMode==='hls')||(playerMode==='auto'&&window.Hls&&Hls.isSupported());
+    hls=new Hls({lowLatencyMode:true,enableWorker:true,fragLoadingMaxRetry:6,manifestLoadingMaxRetry:4,levelLoadingMaxRetry:4,fragLoadingTimeOut:20000,manifestLoadingTimeOut:20000,levelLoadingTimeOut:20000});
     hls.on(Hls.Events.MEDIA_ATTACHED,()=>diag('HLS.js conectado ao vídeo; carregando playlist.'));
-    hls.on(Hls.Events.MANIFEST_PARSED,()=>{diag('Playlist HLS interpretada; iniciando reprodução.');v.play().catch(e=>diag('Reprodução bloqueada pelo navegador: '+e.message,true));});
+    hls.on(Hls.Events.MANIFEST_PARSED,()=>{diag('Playlist HLS interpretada; iniciando reprodução.');v.play().catch(e=>{});});
     hls.on(Hls.Events.ERROR,(e,d)=>{
       const detail=[d.type,d.details,d.reason].filter(Boolean).join(' / ');
       diag('HLS '+(d.fatal?'fatal':'recuperável')+': '+(detail||'erro sem detalhes'),!!d.fatal);
       if(!d.fatal){
-        if(d.details===Hls.ErrorDetails?.FRAG_PARSING_ERROR){
-          diag('fragParsingError: segmento não pôde ser interpretado. Tentando recuperação única.',true);
+        if(d.details===Hls.ErrorDetails?.FRAG_PARSING_ERROR||d.details===Hls.ErrorDetails?.FRAG_LOAD_ERROR||d.details===Hls.ErrorDetails?.FRAG_LOAD_TIMEOUT){
           try{hls.recoverMediaError()}catch(_){}
+        }
+        if(d.details===Hls.ErrorDetails?.MANIFEST_LOAD_ERROR||d.details===Hls.ErrorDetails?.LEVEL_LOAD_ERROR){
+          try{hls.startLoad()}catch(_){}
         }
         return;
       }
       if(d.type===Hls.ErrorTypes.NETWORK_ERROR){diag('Erro de rede HLS. Tentando reiniciar o carregamento.',true);try{hls.startLoad();return}catch(_){}}
       if(d.type===Hls.ErrorTypes.MEDIA_ERROR){diag('Erro de mídia/codec. Tentando recuperar decodificação.',true);try{hls.recoverMediaError();return}catch(_){}}
       hls.destroy();hls=null;
-      if(playerMode!=='hls'){diag('HLS indisponível; tentando vídeo HTML5 nativo.');v.src=c.url;v.play().catch(err=>diag('HTML5 também falhou: '+err.message,true));}
-      else diag('HLS.js falhou. Troque o modo para Automático ou HTML5 nativo.',true);
+      if(playerMode!=='hls'){diag('HLS indisponível; tentando vídeo HTML5 nativo.');try{v.src=c.url;v.play().catch(()=>{});}catch(_){ }}
+      else {diag('HLS.js falhou. Tentando HTML5 nativo.');try{v.src=c.url;v.play().catch(()=>{});}catch(_){ }}
     });
     hls.loadSource(c.url);hls.attachMedia(v);
   }else{
     if(playerMode==='hls'&&(!window.Hls||!Hls.isSupported()))diag('HLS.js não é suportado neste navegador. Tentando HTML5 nativo.',true);
-    v.src=c.url;v.play().catch(err=>diag('HTML5 não iniciou: '+err.message+' (pode ser formato, CORS ou política de autoplay)',true));
+    try{v.src=c.url;v.play().catch(()=>{});}catch(_){}
   }
 }
 function stop(){
@@ -484,10 +481,29 @@ function setMode(m){
 }
 v.addEventListener('playing',()=>diag('Vídeo reproduzindo normalmente.'));
 v.addEventListener('loadedmetadata',()=>diag('Metadados carregados: '+v.videoWidth+'×'+v.videoHeight));
-v.addEventListener('error',()=>{if(v.error)diag('Erro HTML5 código '+v.error.code+': '+({1:'reprodução cancelada',2:'erro de rede',3:'falha de decodificação/codec',4:'fonte ou formato não suportado'}[v.error.code]||'desconhecido'),true)});
+v.addEventListener('error',()=>{
+  if(v.error){
+    diag('Erro HTML5 código '+v.error.code+': '+({1:'reprodução cancelada',2:'erro de rede',3:'falha de decodificação/codec',4:'fonte ou formato não suportado'}[v.error.code]||'desconhecido'),true);
+    if(!hls && v.getAttribute('src')){
+      try{
+        if(window.Hls && Hls.isSupported()){
+          hls=new Hls({lowLatencyMode:true,enableWorker:true,fragLoadingMaxRetry:6,manifestLoadingMaxRetry:4,levelLoadingMaxRetry:4});
+          hls.on(Hls.Events.ERROR,(e,d)=>{
+            if(d.fatal){
+              if(d.type===Hls.ErrorTypes.NETWORK_ERROR){try{hls.startLoad();return;}catch(_){ }}
+              if(d.type===Hls.ErrorTypes.MEDIA_ERROR){try{hls.recoverMediaError();return;}catch(_){ }}
+              hls.destroy();hls=null;
+            }
+          });
+          hls.loadSource(v.getAttribute('src'));hls.attachMedia(v);v.play().catch(()=>{});
+        }
+      }catch(_){}
+    }
+  }
+});
 v.addEventListener('play',()=>{const b=$('#pplay');if(b)b.textContent='Pausar'});
 v.addEventListener('pause',()=>{const b=$('#pplay');if(b)b.textContent='Reproduzir'});
-v.addEventListener('error',()=>{if(!hls&&v.getAttribute('src'))pm('Este canal não abriu. Use cima ou baixo para trocar de canal.',1)});
+v.addEventListener('error',()=>{if(!hls&&v.getAttribute('src')){pm('');}});
 function remember(i){recent=[ch[i].url,...recent.filter(u=>u!==ch[i].url)].slice(0,15);store.set('tv_recent',recent)}
 function openFull(i){
   cur=i;lastFocus=i;load(i);remember(i);setMode('full');
@@ -569,7 +585,7 @@ function focusEl(el){if(!el)return;el.focus({preventScroll:true});el.scrollIntoV
 function move(dir){
   const cur=document.activeElement;
   const root=mode==='full'?(menuOpen?$('#pmenu'):$('#pbar')):document;
-  const els=[...root.querySelectorAll('[data-f],input,select,textarea')].filter(e=>e.offsetParent!==null);
+  const els=[...root.querySelectorAll('[data-f],input')].filter(e=>e.offsetParent!==null);
   if(!cur||!els.includes(cur)){focusEl(els.find(e=>main.contains(e))||els[0]);return}
   if(cur.classList.contains('grow')&&dir==='L'){focusEl(document.querySelector('.cat.on'));return}
   if(cur.classList.contains('cat')&&dir==='R'){focusEl(document.querySelector('.grow'));return}
@@ -614,17 +630,11 @@ document.addEventListener('keydown',e=>{
     else showInfo(cur);
     return;
   }
-  const active=document.activeElement;
-  const typing=active&&['INPUT','TEXTAREA'].includes(active.tagName);
-  const choosing=active&&active.tagName==='SELECT';
+  const typing=document.activeElement&&document.activeElement.tagName==='INPUT';
   const map={ArrowRight:'R',ArrowLeft:'L',ArrowDown:'D',ArrowUp:'U'};
   if(map[e.key]){
     if(typing&&(e.key==='ArrowLeft'||e.key==='ArrowRight'))return;
-    if(choosing&&(e.key==='ArrowUp'||e.key==='ArrowDown'))return;
     e.preventDefault();move(map[e.key]);return;
-  }
-  if((e.key==='Enter'||e.key==='NumpadEnter'||e.key===' ')&&active&&active.tagName==='BUTTON'){
-    e.preventDefault();active.click();return;
   }
   if(e.key==='Escape'||(e.key==='Backspace'&&!typing)){e.preventDefault();onBack()}
 });
