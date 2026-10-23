@@ -2,9 +2,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="28" />
-    <uses-permission android:name="android.permission.ACCESS_MEDIA_LOCATION" />
     <uses-feature android:name="android.software.leanback" android:required="false" />
     <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
 
@@ -15,14 +12,13 @@
         android:icon="@drawable/ic_launcher"
         android:label="Player IPTV"
         android:theme="@android:style/Theme.DeviceDefault.NoActionBar"
-        android:requestLegacyExternalStorage="true"
         android:usesCleartextTraffic="true">
 
         <activity
             android:name=".MainActivity"
             android:configChanges="orientation|screenSize|keyboardHidden|keyboard|navigation|uiMode"
             android:exported="true"
-            android:screenOrientation="landscape">
+            android:screenOrientation="sensorLandscape">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />

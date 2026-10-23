@@ -1,35 +1,71 @@
 package com.iptv.player;
 
-import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.OpenableColumns;
+import android.view.Gravity;
+import android.view.TextureView;
 import android.view.View;
 import android.view.WindowManager;
 import android.webkit.JavascriptInterface;
-import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.FrameLayout;
 
-import java.util.ArrayList;
-import java.util.List;
+import androidx.media3.common.C;
+import androidx.media3.common.MediaItem;
+import androidx.media3.common.MimeTypes;
+import androidx.media3.common.PlaybackException;
+import androidx.media3.common.Player;
+import androidx.media3.common.Tracks;
+import androidx.media3.common.VideoSize;
+import androidx.media3.datasource.DefaultHttpDataSource;
+import androidx.media3.exoplayer.DefaultRenderersFactory;
+import androidx.media3.exoplayer.ExoPlayer;
+import androidx.media3.exoplayer.source.DefaultMediaSourceFactory;
+import androidx.media3.exoplayer.source.MediaSource;
 
+import org.json.JSONObject;
+
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+
+/**
+ * Interface (HTML) dentro de um WebView transparente, por cima de um player nativo (ExoPlayer).
+ * A página decide qual motor usar e controla o player pela ponte "Android".
+ */
 public class MainActivity extends Activity {
+    private static final int REQ_PICK = 77;
+
+    private FrameLayout root;
+    private FrameLayout videoHost;
+    private TextureView texture;
     private WebView web;
     private SharedPreferences prefs;
-    private ValueCallback<Uri[]> filePathCallback;
-    private static final int FILE_CHOOSER_REQUEST = 1001;
-    private static final int PERMISSION_REQUEST = 1002;
 
-    /** Ponte entre a página e o Android: permite trocar o User-Agent usado nas requisições. */
+    private ExoPlayer player;
+    private String curUrl = "";
+    private boolean retriedHls = false;
+    private boolean muted = true;
+    private int fitMode = 0;      // 0 = ajustar, 1 = preencher, 2 = esticar
+    private int vw = 0, vh = 0;   // tamanho do vídeo
+    private float rl = 0f, rt = 0f, rr = 1f, rb = 1f; // área do vídeo (frações da tela)
+
+    /** Ponte entre a página e o Android. */
     private class Bridge {
+        // ---- User-Agent ----
         @JavascriptInterface
         public String getUserAgent() {
             return prefs.getString("ua", "");
@@ -42,63 +78,177 @@ public class MainActivity extends Activity {
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    WebSettings s = web.getSettings();
-                    s.setUserAgentString(ua.isEmpty() ? null : ua);
+                    web.getSettings().setUserAgentString(ua.isEmpty() ? null : ua);
                 }
             });
         }
-    }
 
-    private void requestStoragePermissions() {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
-            return;
+        // ---- Player nativo ----
+        @JavascriptInterface
+        public void nPlay(final String url) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    startNative(url);
+                }
+            });
         }
-        List<String> perms = new ArrayList<String>();
-        if (checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            perms.add(Manifest.permission.READ_EXTERNAL_STORAGE);
+
+        @JavascriptInterface
+        public void nStop() {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    stopNative();
+                }
+            });
         }
-        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.P) {
-            if (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-                perms.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+
+        @JavascriptInterface
+        public void nMute(final boolean m) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    muted = m;
+                    if (player != null) player.setVolume(m ? 0f : 1f);
+                }
+            });
+        }
+
+        @JavascriptInterface
+        public void nToggle() {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    if (player == null) return;
+                    if (player.getPlayWhenReady()) player.pause();
+                    else player.play();
+                }
+            });
+        }
+
+        @JavascriptInterface
+        public void nRect(final float l, final float t, final float r, final float b) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    rl = l;
+                    rt = t;
+                    rr = r;
+                    rb = b;
+                    applyRect();
+                }
+            });
+        }
+
+        @JavascriptInterface
+        public void nFit(final int mode) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    fitMode = mode;
+                    applyFit();
+                }
+            });
+        }
+
+        // ---- Listas locais ----
+        @JavascriptInterface
+        public void pickFile() {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        Intent i = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+                        i.addCategory(Intent.CATEGORY_OPENABLE);
+                        i.setType("*/*");
+                        startActivityForResult(i, REQ_PICK);
+                    } catch (Exception e) {
+                        js("nofilemanager");
+                    }
+                }
+            });
+        }
+
+        @JavascriptInterface
+        public void putCache(String id, String text) {
+            try {
+                FileOutputStream o = new FileOutputStream(cacheFile(id));
+                o.write(text.getBytes("UTF-8"));
+                o.close();
+            } catch (Exception ignored) {
             }
         }
-        if (!perms.isEmpty()) {
-            requestPermissions(perms.toArray(new String[0]), PERMISSION_REQUEST);
+
+        @JavascriptInterface
+        public String getCache(String id) {
+            try {
+                File f = cacheFile(id);
+                if (!f.exists()) return "";
+                FileInputStream in = new FileInputStream(f);
+                ByteArrayOutputStream out = new ByteArrayOutputStream();
+                byte[] buf = new byte[16384];
+                int n;
+                while ((n = in.read(buf)) > 0) out.write(buf, 0, n);
+                in.close();
+                return out.toString("UTF-8");
+            } catch (Exception e) {
+                return "";
+            }
         }
+
+        @JavascriptInterface
+        public void delCache(String id) {
+            try {
+                cacheFile(id).delete();
+            } catch (Exception ignored) {
+            }
+        }
+    }
+
+    private File cacheFile(String id) {
+        return new File(getFilesDir(), "src_" + id.replaceAll("[^A-Za-z0-9_]", "") + ".m3u");
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        requestStoragePermissions();
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         prefs = getSharedPreferences("iptv", MODE_PRIVATE);
 
+        root = new FrameLayout(this);
+        root.setBackgroundColor(0xFF0B0B0D);
+
+        videoHost = new FrameLayout(this);
+        videoHost.setVisibility(View.GONE);
+        texture = new TextureView(this);
+        videoHost.addView(texture, new FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT, Gravity.CENTER));
+        root.addView(videoHost, new FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
+
         web = new WebView(this);
-        web.setBackgroundColor(0xFF0B0B0D);
-        setContentView(web);
+        web.setBackgroundColor(Color.TRANSPARENT);
+        root.addView(web, new FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
+        setContentView(root);
+
+        root.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
+            @Override
+            public void onLayoutChange(View v, int l, int t, int r, int b, int ol, int ot, int or, int ob) {
+                applyRect();
+            }
+        });
 
         WebSettings s = web.getSettings();
         s.setJavaScriptEnabled(true);
         s.setDomStorageEnabled(true);
         s.setAllowFileAccess(true);
-        s.setAllowContentAccess(true);
+        // A página (arquivo local) pode baixar listas e canais de qualquer servidor, sem bloqueio de CORS.
         s.setAllowFileAccessFromFileURLs(true);
         s.setAllowUniversalAccessFromFileURLs(true);
         s.setMediaPlaybackRequiresUserGesture(false);
         s.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
-        s.setLoadsImagesAutomatically(true);
-        s.setLoadWithOverviewMode(true);
-        s.setUseWideViewPort(true);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-            s.setMediaPlaybackRequiresUserGesture(false);
-        }
-        try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                s.setMixedContentMode(WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE);
-            }
-        } catch (Exception ignored) {
-        }
 
         String ua = prefs.getString("ua", "");
         if (!ua.isEmpty()) {
@@ -112,62 +262,201 @@ public class MainActivity extends Activity {
                 // Remove o ícone branco de "play" que o WebView mostra enquanto o vídeo carrega.
                 return Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888);
             }
-
-            @Override
-            public boolean onShowFileChooser(WebView webView, ValueCallback<Uri[]> filePathCallback, FileChooserParams fileChooserParams) {
-                if (MainActivity.this.filePathCallback != null) {
-                    MainActivity.this.filePathCallback.onReceiveValue(null);
-                }
-                MainActivity.this.filePathCallback = filePathCallback;
-                Intent intent;
-                if (fileChooserParams != null && fileChooserParams.createIntent() != null) {
-                    intent = fileChooserParams.createIntent();
-                } else {
-                    intent = new Intent(Intent.ACTION_GET_CONTENT);
-                    intent.addCategory(Intent.CATEGORY_OPENABLE);
-                    intent.setType("*/*");
-                }
-                try {
-                    startActivityForResult(Intent.createChooser(intent, "Selecionar arquivo M3U"), FILE_CHOOSER_REQUEST);
-                } catch (Exception e) {
-                    if (MainActivity.this.filePathCallback != null) {
-                        MainActivity.this.filePathCallback.onReceiveValue(null);
-                        MainActivity.this.filePathCallback = null;
-                    }
-                    return false;
-                }
-                return true;
-            }
         });
         web.setWebViewClient(new WebViewClient());
         web.loadUrl("file:///android_asset/index.html");
         web.requestFocus();
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == FILE_CHOOSER_REQUEST) {
-            if (filePathCallback == null) {
-                return;
+    // ------------------------------------------------------------------ player nativo
+
+    private void ensurePlayer() {
+        if (player != null) return;
+        DefaultRenderersFactory rf = new DefaultRenderersFactory(this)
+                .setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON)
+                .setEnableDecoderFallback(true);
+        player = new ExoPlayer.Builder(this, rf).build();
+        player.setVideoTextureView(texture);
+        player.setVolume(muted ? 0f : 1f);
+        player.addListener(new Player.Listener() {
+            @Override
+            public void onVideoSizeChanged(VideoSize size) {
+                vw = Math.round(size.width * size.pixelWidthHeightRatio);
+                vh = size.height;
+                applyFit();
             }
-            Uri[] results = null;
-            if (resultCode == Activity.RESULT_OK && data != null) {
-                String dataString = data.getDataString();
-                if (dataString != null) {
-                    results = new Uri[]{Uri.parse(dataString)};
-                } else if (data.getClipData() != null) {
-                    int count = data.getClipData().getItemCount();
-                    results = new Uri[count];
-                    for (int i = 0; i < count; i++) {
-                        results[i] = data.getClipData().getItemAt(i).getUri();
+
+            @Override
+            public void onIsPlayingChanged(boolean isPlaying) {
+                js(isPlaying ? "playing" : "paused");
+            }
+
+            @Override
+            public void onPlaybackStateChanged(int state) {
+                if (state == Player.STATE_BUFFERING) js("buffering");
+            }
+
+            @Override
+            public void onTracksChanged(Tracks tracks) {
+                boolean hasV = false, okV = false, hasA = false, okA = false;
+                String vm = "", am = "";
+                for (Tracks.Group g : tracks.getGroups()) {
+                    if (g.getType() == C.TRACK_TYPE_VIDEO) {
+                        hasV = true;
+                        if (g.isSupported()) okV = true;
+                        else if (g.length > 0 && vm.isEmpty()) {
+                            String m = g.getTrackFormat(0).sampleMimeType;
+                            vm = m == null ? "?" : m;
+                        }
+                    } else if (g.getType() == C.TRACK_TYPE_AUDIO) {
+                        hasA = true;
+                        if (g.isSupported()) okA = true;
+                        else if (g.length > 0 && am.isEmpty()) {
+                            String m = g.getTrackFormat(0).sampleMimeType;
+                            am = m == null ? "?" : m;
+                        }
                     }
                 }
+                if (hasV && !okV) js("novideo:" + vm);
+                else if (hasA && !okA) js("noaudio:" + am);
             }
-            filePathCallback.onReceiveValue(results);
-            filePathCallback = null;
-        }
+
+            @Override
+            public void onPlayerError(PlaybackException e) {
+                // Streams HLS sem extensão ".m3u8": tenta de novo declarando o tipo.
+                if (!retriedHls && e.errorCode == PlaybackException.ERROR_CODE_PARSING_CONTAINER_UNSUPPORTED) {
+                    retriedHls = true;
+                    playUrl(curUrl, true);
+                    return;
+                }
+                js("error:" + e.getErrorCodeName());
+            }
+        });
     }
+
+    private void startNative(String url) {
+        curUrl = url;
+        retriedHls = false;
+        ensurePlayer();
+        videoHost.setVisibility(View.VISIBLE);
+        playUrl(url, false);
+    }
+
+    private void playUrl(String url, boolean forceHls) {
+        String ua = prefs.getString("ua", "");
+        if (ua.isEmpty()) {
+            ua = "IPTVPlayer/1.0 (Linux; Android " + Build.VERSION.RELEASE + ") ExoPlayer";
+        }
+        DefaultHttpDataSource.Factory f = new DefaultHttpDataSource.Factory()
+                .setUserAgent(ua)
+                .setAllowCrossProtocolRedirects(true)
+                .setConnectTimeoutMs(15000)
+                .setReadTimeoutMs(20000);
+        MediaItem.Builder mb = new MediaItem.Builder().setUri(url);
+        if (forceHls) mb.setMimeType(MimeTypes.APPLICATION_M3U8);
+        MediaSource ms = new DefaultMediaSourceFactory(this)
+                .setDataSourceFactory(f)
+                .createMediaSource(mb.build());
+        player.setMediaSource(ms);
+        player.prepare();
+        player.setPlayWhenReady(true);
+    }
+
+    private void stopNative() {
+        if (player != null) {
+            player.stop();
+            player.clearMediaItems();
+        }
+        videoHost.setVisibility(View.GONE);
+        vw = 0;
+        vh = 0;
+    }
+
+    private void applyRect() {
+        int w = root.getWidth(), h = root.getHeight();
+        if (w == 0 || h == 0) return;
+        FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(
+                Math.max(1, Math.round((rr - rl) * w)), Math.max(1, Math.round((rb - rt) * h)));
+        lp.leftMargin = Math.round(rl * w);
+        lp.topMargin = Math.round(rt * h);
+        videoHost.setLayoutParams(lp);
+        applyFit();
+    }
+
+    private void applyFit() {
+        int w = Math.round((rr - rl) * root.getWidth());
+        int h = Math.round((rb - rt) * root.getHeight());
+        if (w <= 0 || h <= 0) return;
+        int tw = w, th = h;
+        if (vw > 0 && vh > 0 && fitMode != 2) {
+            float sw = (float) w / vw, sh = (float) h / vh;
+            float sc = fitMode == 0 ? Math.min(sw, sh) : Math.max(sw, sh);
+            tw = Math.round(vw * sc);
+            th = Math.round(vh * sc);
+        }
+        texture.setLayoutParams(new FrameLayout.LayoutParams(tw, th, Gravity.CENTER));
+    }
+
+    /** Envia um evento para a página (window.onNative). */
+    private void js(final String msg) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                web.evaluateJavascript("window.onNative&&onNative(" + JSONObject.quote(msg) + ")", null);
+            }
+        });
+    }
+
+    // ------------------------------------------------------------------ lista local
+
+    @Override
+    @SuppressWarnings("deprecation")
+    protected void onActivityResult(int requestCode, int resultCode, final Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode != REQ_PICK || resultCode != RESULT_OK || data == null || data.getData() == null) return;
+        final Uri uri = data.getData();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    String name = "Lista local";
+                    Cursor c = getContentResolver().query(uri, null, null, null, null);
+                    if (c != null) {
+                        try {
+                            int idx = c.getColumnIndex(OpenableColumns.DISPLAY_NAME);
+                            if (idx >= 0 && c.moveToFirst()) name = c.getString(idx);
+                        } finally {
+                            c.close();
+                        }
+                    }
+                    InputStream in = getContentResolver().openInputStream(uri);
+                    ByteArrayOutputStream out = new ByteArrayOutputStream();
+                    byte[] buf = new byte[16384];
+                    int n;
+                    long total = 0;
+                    while ((n = in.read(buf)) > 0) {
+                        out.write(buf, 0, n);
+                        total += n;
+                        if (total > 30000000L) break;
+                    }
+                    in.close();
+                    final String fname = name;
+                    final String text = out.toString("UTF-8");
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            web.evaluateJavascript("window.onFilePicked&&onFilePicked("
+                                    + JSONObject.quote(fname) + "," + JSONObject.quote(text) + ")", null);
+                        }
+                    });
+                } catch (Exception e) {
+                    js("filepick:error");
+                }
+            }
+        }).start();
+    }
+
+    // ------------------------------------------------------------------ ciclo de vida
 
     @Override
     public void onWindowFocusChanged(boolean hasFocus) {
@@ -197,6 +486,7 @@ public class MainActivity extends Activity {
     @Override
     protected void onPause() {
         super.onPause();
+        if (player != null) player.pause();
         web.onPause();
     }
 
@@ -208,6 +498,10 @@ public class MainActivity extends Activity {
 
     @Override
     protected void onDestroy() {
+        if (player != null) {
+            player.release();
+            player = null;
+        }
         web.destroy();
         super.onDestroy();
     }
