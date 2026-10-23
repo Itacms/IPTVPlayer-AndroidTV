@@ -192,6 +192,7 @@ input:focus{border-color:#fff}
   </div>
 </div>
 <div id="toast"></div>
+<input type="file" id="file" accept=".m3u,.m3u8,.txt" hidden>
 
 <script>
 /* Para já abrir com a sua lista, coloque o endereço entre as aspas abaixo: */
@@ -363,8 +364,11 @@ function renderCfg(){
   main.innerHTML=`<div class="title">Configurações</div><div class="sub">${ch.length} canais de ${sources.filter(s=>s.on).length} lista(s) ativa(s)</div>
   <div class="sec">Listas de canais</div>
   ${rowsH}
-  <div class="field"><input id="sname" type="text" placeholder="Nome (opcional)" style="flex:.45"><input id="url" type="url" placeholder="https://exemplo.com/lista.m3u"><button class="pill main" data-f id="badd">Adicionar</button><button class="pill" data-f id="breload">Atualizar</button></div>
+  <div class="field"><input id="sname" type="text" placeholder="Nome (opcional)" style="flex:.45"><input id="url" type="url" placeholder="https://exemplo.com/lista.m3u"><button class="pill main" data-f id="badd">Adicionar</button><button class="pill" data-f id="bfile">Arquivo</button><button class="pill" data-f id="breload">Atualizar</button></div>
   <div class="sub" id="lmsg" style="margin-top:1.4vh"></div>
+  <div class="sec">Player e diagnóstico</div>
+  <div class="field"><select id="playmode" style="background:#26262d;border:1px solid #444;border-radius:10px;padding:10px;color:#fff"><option value="auto">Automático (recomendado)</option><option value="hls">Forçar HLS.js</option><option value="native">HTML5 nativo</option></select><button class="pill main" data-f id="bplaymode">Aplicar</button><button class="pill" data-f id="bdiag">Ver diagnóstico</button></div>
+  <div class="sub" id="diagmsg" style="margin-top:1vh">O diagnóstico aparece aqui durante a reprodução.</div>
   <div class="sec">User-Agent</div>
   <div class="field"><input id="ua" type="text" placeholder="Padrão do aplicativo" value="${esc(ua)}"><button class="pill main" data-f id="bua">Salvar</button></div>
   <div class="field"><button class="pill" data-f data-ua="VLC/3.0.20 LibVLC/3.0.20">VLC</button><button class="pill" data-f data-ua="Lavf/60.16.100">FFmpeg</button><button class="pill" data-f data-ua="okhttp/4.12.0">OkHttp</button><button class="pill" data-f data-ua="">Padrão</button></div>
@@ -416,19 +420,55 @@ function previewSoon(i){
   tmr=setTimeout(()=>{if(view==='live'&&mode!=='full'){cur=i;load(i);setMode('mini')}},700);
 }
 
+/* ---------- diagnóstico e escolha do mecanismo ---------- */
+let playerMode=localStorage.getItem('tv_playmode')||'auto';
+let lastDiag='Pronto para diagnosticar.';
+function diag(t,err=false){lastDiag=new Date().toLocaleTimeString()+' — '+t;const m=document.querySelector('#diagmsg');if(m)m.textContent=lastDiag;pm(t,err)}
+function applyPlayerMode(){const e=document.querySelector('#playmode');if(e){playerMode=e.value;localStorage.setItem('tv_playmode',playerMode);loaded=-1;if(ch[cur])load(cur);diag('Modo aplicado: '+({'auto':'Automático','hls':'HLS.js','native':'HTML5 nativo'}[playerMode]||playerMode));}}
+document.addEventListener('click',ev=>{
+ const b=ev.target.closest('#bplaymode,#bdiag');if(!b)return;
+ if(b.id==='bplaymode')applyPlayerMode();
+ if(b.id==='bdiag')alert('Diagnóstico do player\n'+lastDiag+'\nOrigem da página: '+location.protocol+'\nModo: '+playerMode+'\nCanal: '+(ch[cur]?.name||'nenhum')+'\nURL: '+(ch[cur]?.url||'').slice(0,220)+'\nHLS.js: '+(window.Hls?Hls.version||'carregado':'não carregado')+'\nVídeo: '+(v.error?'erro HTMLMediaElement '+v.error.code:'sem erro HTML5 reportado'));
+});
+const _renderCfg=renderCfg;
+renderCfg=function(){_renderCfg();const e=document.querySelector('#playmode');if(e)e.value=playerMode;};
+
 /* ---------- player ---------- */
 const pm=(t,e)=>{const m=$('#pmsg');m.textContent=t;m.className=e?'err':''};
 function load(i){
+  if(!ch[i])return;
   if(loaded===i&&(hls||v.getAttribute('src')))return;
   loaded=i;const c=ch[i];
   if(hls){hls.destroy();hls=null}
-  pm('Carregando…');
-  const isHls=/\.m3u8(\?|$)/i.test(c.url)||/\/live\//i.test(c.url);
-  if(isHls&&window.Hls&&Hls.isSupported()){
-    hls=new Hls({lowLatencyMode:true});hls.loadSource(c.url);hls.attachMedia(v);
-    hls.on(Hls.Events.MANIFEST_PARSED,()=>v.play().catch(()=>{}));
-    hls.on(Hls.Events.ERROR,(e,d)=>{if(!d.fatal)return;hls.destroy();hls=null;v.src=c.url;v.play().catch(()=>{})});
-  }else{v.src=c.url;v.play().catch(()=>{})}
+  v.pause();v.removeAttribute('src');v.load();
+  diag('Carregando canal: '+clean(c.name));
+  const isHls=/\.m3u8(?:$|[?#])/i.test(c.url)||/\/live\//i.test(c.url);
+  const useHls=playerMode==='hls'||(playerMode==='auto'&&isHls&&window.Hls&&Hls.isSupported());
+  if(useHls&&window.Hls&&Hls.isSupported()){
+    hls=new Hls({lowLatencyMode:false,enableWorker:true,fragLoadingMaxRetry:3,manifestLoadingMaxRetry:2,levelLoadingMaxRetry:3});
+    hls.on(Hls.Events.MEDIA_ATTACHED,()=>diag('HLS.js conectado ao vídeo; carregando playlist.'));
+    hls.on(Hls.Events.MANIFEST_PARSED,()=>{diag('Playlist HLS interpretada; iniciando reprodução.');v.play().catch(e=>diag('Reprodução bloqueada pelo navegador: '+e.message,true));});
+    hls.on(Hls.Events.ERROR,(e,d)=>{
+      const detail=[d.type,d.details,d.reason].filter(Boolean).join(' / ');
+      diag('HLS '+(d.fatal?'fatal':'recuperável')+': '+(detail||'erro sem detalhes'),!!d.fatal);
+      if(!d.fatal){
+        if(d.details===Hls.ErrorDetails?.FRAG_PARSING_ERROR){
+          diag('fragParsingError: segmento não pôde ser interpretado. Tentando recuperação única.',true);
+          try{hls.recoverMediaError()}catch(_){}
+        }
+        return;
+      }
+      if(d.type===Hls.ErrorTypes.NETWORK_ERROR){diag('Erro de rede HLS. Tentando reiniciar o carregamento.',true);try{hls.startLoad();return}catch(_){}}
+      if(d.type===Hls.ErrorTypes.MEDIA_ERROR){diag('Erro de mídia/codec. Tentando recuperar decodificação.',true);try{hls.recoverMediaError();return}catch(_){}}
+      hls.destroy();hls=null;
+      if(playerMode!=='hls'){diag('HLS indisponível; tentando vídeo HTML5 nativo.');v.src=c.url;v.play().catch(err=>diag('HTML5 também falhou: '+err.message,true));}
+      else diag('HLS.js falhou. Troque o modo para Automático ou HTML5 nativo.',true);
+    });
+    hls.loadSource(c.url);hls.attachMedia(v);
+  }else{
+    if(playerMode==='hls'&&(!window.Hls||!Hls.isSupported()))diag('HLS.js não é suportado neste navegador. Tentando HTML5 nativo.',true);
+    v.src=c.url;v.play().catch(err=>diag('HTML5 não iniciou: '+err.message+' (pode ser formato, CORS ou política de autoplay)',true));
+  }
 }
 function stop(){
   if(hls){hls.destroy();hls=null}
@@ -438,7 +478,9 @@ function setMode(m){
   mode=m;v.className=m==='off'?'':m;v.style.objectFit=m==='full'?RATIOS[ri][1]:'';pov.classList.toggle('on',m==='full');v.muted=m!=='full';
   if(m==='off')stop();else v.play().catch(()=>{});
 }
-v.addEventListener('playing',()=>pm(''));
+v.addEventListener('playing',()=>diag('Vídeo reproduzindo normalmente.'));
+v.addEventListener('loadedmetadata',()=>diag('Metadados carregados: '+v.videoWidth+'×'+v.videoHeight));
+v.addEventListener('error',()=>{if(v.error)diag('Erro HTML5 código '+v.error.code+': '+({1:'reprodução cancelada',2:'erro de rede',3:'falha de decodificação/codec',4:'fonte ou formato não suportado'}[v.error.code]||'desconhecido'),true)});
 v.addEventListener('play',()=>{const b=$('#pplay');if(b)b.textContent='Pausar'});
 v.addEventListener('pause',()=>{const b=$('#pplay');if(b)b.textContent='Reproduzir'});
 v.addEventListener('error',()=>{if(!hls&&v.getAttribute('src'))pm('Este canal não abriu. Use cima ou baixo para trocar de canal.',1)});
@@ -617,6 +659,7 @@ document.addEventListener('click',e=>{
     twoClick('i'+i,()=>{if(r!==undefined)ctx=rows[+r]||[i];openFull(i)},()=>toggleFav(i));return;
   }
   if(t.id==='badd'){addSource($('#sname').value.trim(),$('#url').value.trim());return}
+  if(t.id==='bfile'){$('#file').click();return}
   if(t.id==='breload'){reloadAll();return}
   if(t.dataset.sen){
     const s=sources.find(x=>x.id===t.dataset.sen);s.on=!s.on;saveSources();rebuild();renderCfg();
@@ -634,6 +677,15 @@ document.addEventListener('click',e=>{
 });
 
 /* ---------- início ---------- */
+$('#file').addEventListener('change',async e=>{
+  const f=e.target.files[0];if(!f)return;
+  const text=await f.text(),arr=parseM3U(text);
+  if(!arr.length){lmsg('Nenhum canal encontrado nesse arquivo.',1);return}
+  const s={id:uid(),name:f.name.replace(/\.[^.]+$/,''),url:'',on:true};
+  cacheSet(s.id,text);arr.forEach(c=>{c.src=s.name});parsed[s.id]=arr;s.count=arr.length;
+  sources.push(s);saveSources();rebuild();renderCfg();
+  lmsg(`${arr.length} canais adicionados de “${s.name}”.`);e.target.value='';
+});
 applyLogo();
 (async()=>{
   /* migra a lista única da versão anterior */
