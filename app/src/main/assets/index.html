@@ -15,9 +15,9 @@
 html,body{height:100%;margin:0;overflow:hidden;background:var(--bg);color:var(--txt);font:1.5vw/1.35 Poppins,Montserrat,Roboto,"Segoe UI",sans-serif}
 button,input{font:inherit;color:inherit}
 button{background:none;border:0;padding:0;text-align:left;cursor:pointer}
-button:focus,input:focus{outline:none}
+button:focus,input:focus,select:focus{outline:none}
 [data-f]{transition:transform .12s,box-shadow .12s,background .12s}
-[data-f]:focus{box-shadow:0 0 0 .22vw #fff;transform:scale(1.03);position:relative;z-index:3}
+[data-f]:focus,input:focus,select:focus{box-shadow:0 0 0 .22vw #fff;transform:scale(1.03);position:relative;z-index:3}
 svg{display:block;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 
 #app{position:relative;z-index:1;display:flex;height:100%}
@@ -371,7 +371,7 @@ function renderCfg(){
   <div class="field"><input id="sname" type="text" placeholder="Nome (opcional)" style="flex:.45"><input id="url" type="url" placeholder="https://exemplo.com/lista.m3u"><button class="pill main" data-f id="badd">Adicionar</button><button class="pill" data-f id="bfile">Arquivo</button><button class="pill" data-f id="breload">Atualizar</button></div>
   <div class="sub" id="lmsg" style="margin-top:1.4vh"></div>
   <div class="sec">Player e diagnóstico</div>
-  <div class="field"><select id="playmode" style="background:#26262d;border:1px solid #444;border-radius:10px;padding:10px;color:#fff"><option value="auto">Automático (recomendado)</option><option value="hls">Forçar HLS.js</option><option value="native">HTML5 nativo</option></select><button class="pill main" data-f id="bplaymode">Aplicar</button><button class="pill" data-f id="bdiag">Ver diagnóstico</button></div>
+  <div class="field"><select id="playmode" data-f tabindex="0" style="background:#26262d;border:1px solid #444;border-radius:10px;padding:10px;color:#fff"><option value="auto">Automático (recomendado)</option><option value="hls">Forçar HLS.js</option><option value="native">HTML5 nativo</option></select><button class="pill main" data-f id="bplaymode">Aplicar</button><button class="pill" data-f id="bdiag">Ver diagnóstico</button></div>
   <div class="sub" id="diagmsg" style="margin-top:1vh">O diagnóstico aparece aqui durante a reprodução.</div>
   <div class="sec">User-Agent</div>
   <div class="field"><input id="ua" type="text" placeholder="Padrão do aplicativo" value="${esc(ua)}"><button class="pill main" data-f id="bua">Salvar</button></div>
@@ -569,7 +569,7 @@ function focusEl(el){if(!el)return;el.focus({preventScroll:true});el.scrollIntoV
 function move(dir){
   const cur=document.activeElement;
   const root=mode==='full'?(menuOpen?$('#pmenu'):$('#pbar')):document;
-  const els=[...root.querySelectorAll('[data-f],input')].filter(e=>e.offsetParent!==null);
+  const els=[...root.querySelectorAll('[data-f],input,select,textarea')].filter(e=>e.offsetParent!==null);
   if(!cur||!els.includes(cur)){focusEl(els.find(e=>main.contains(e))||els[0]);return}
   if(cur.classList.contains('grow')&&dir==='L'){focusEl(document.querySelector('.cat.on'));return}
   if(cur.classList.contains('cat')&&dir==='R'){focusEl(document.querySelector('.grow'));return}
@@ -614,11 +614,17 @@ document.addEventListener('keydown',e=>{
     else showInfo(cur);
     return;
   }
-  const typing=document.activeElement&&document.activeElement.tagName==='INPUT';
+  const active=document.activeElement;
+  const typing=active&&['INPUT','TEXTAREA'].includes(active.tagName);
+  const choosing=active&&active.tagName==='SELECT';
   const map={ArrowRight:'R',ArrowLeft:'L',ArrowDown:'D',ArrowUp:'U'};
   if(map[e.key]){
     if(typing&&(e.key==='ArrowLeft'||e.key==='ArrowRight'))return;
+    if(choosing&&(e.key==='ArrowUp'||e.key==='ArrowDown'))return;
     e.preventDefault();move(map[e.key]);return;
+  }
+  if((e.key==='Enter'||e.key==='NumpadEnter'||e.key===' ')&&active&&active.tagName==='BUTTON'){
+    e.preventDefault();active.click();return;
   }
   if(e.key==='Escape'||(e.key==='Backspace'&&!typing)){e.preventDefault();onBack()}
 });
