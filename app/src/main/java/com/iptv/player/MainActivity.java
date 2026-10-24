@@ -48,6 +48,7 @@ import java.io.InputStream;
  */
 public class MainActivity extends Activity {
     private static final int REQ_PICK = 77;
+    private static final int REQ_SAVE = 78;
 
     private FrameLayout root;
     private FrameLayout videoHost;
@@ -62,6 +63,8 @@ public class MainActivity extends Activity {
     private int fitMode = 0;      // 0 = ajustar, 1 = preencher, 2 = esticar
     private int vw = 0, vh = 0;   // tamanho do vídeo
     private float rl = 0f, rt = 0f, rr = 1f, rb = 1f; // área do vídeo (frações da tela)
+    private String pendingName = "";
+    private String pendingText = "";
 
     /** Ponte entre a página e o Android. */
     private class Bridge {
@@ -152,6 +155,43 @@ public class MainActivity extends Activity {
             });
         }
 
+        // ---- Tema (cor de fundo atrás da página transparente) ----
+        @JavascriptInterface
+        public void setBackground(final String color) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        int c = Color.parseColor(color);
+                        prefs.edit().putInt("bg", c).apply();
+                        root.setBackgroundColor(c);
+                    } catch (Exception ignored) {
+                    }
+                }
+            });
+        }
+
+        // ---- Backup local ----
+        @JavascriptInterface
+        public void saveBackup(final String name, final String text) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    pendingName = name;
+                    pendingText = text;
+                    try {
+                        Intent i = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+                        i.addCategory(Intent.CATEGORY_OPENABLE);
+                        i.setType("application/json");
+                        i.putExtra(Intent.EXTRA_TITLE, name);
+                        startActivityForResult(i, REQ_SAVE);
+                    } catch (Exception e) {
+                        saveBackupFallback();
+                    }
+                }
+            });
+        }
+
         // ---- Listas locais ----
         @JavascriptInterface
         public void pickFile() {
@@ -217,7 +257,7 @@ public class MainActivity extends Activity {
         prefs = getSharedPreferences("iptv", MODE_PRIVATE);
 
         root = new FrameLayout(this);
-        root.setBackgroundColor(0xFF0B0B0D);
+        root.setBackgroundColor(prefs.getInt("bg", 0xFF0B0B0D));
 
         videoHost = new FrameLayout(this);
         videoHost.setVisibility(View.GONE);
@@ -407,12 +447,39 @@ public class MainActivity extends Activity {
         });
     }
 
+    /** Sem seletor de arquivos na TV: grava na pasta do app (Android/data/com.iptv.player/files). */
+    private void saveBackupFallback() {
+        try {
+            File dir = getExternalFilesDir(null);
+            if (dir == null) dir = getFilesDir();
+            File f = new File(dir, pendingName);
+            FileOutputStream o = new FileOutputStream(f);
+            o.write(pendingText.getBytes("UTF-8"));
+            o.close();
+            js("backup:path:" + f.getAbsolutePath());
+        } catch (Exception e) {
+            js("backup:error");
+        }
+    }
+
     // ------------------------------------------------------------------ lista local
 
     @Override
     @SuppressWarnings("deprecation")
     protected void onActivityResult(int requestCode, int resultCode, final Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQ_SAVE) {
+            if (resultCode != RESULT_OK || data == null || data.getData() == null) return;
+            try {
+                java.io.OutputStream o = getContentResolver().openOutputStream(data.getData(), "wt");
+                o.write(pendingText.getBytes("UTF-8"));
+                o.close();
+                js("backup:ok:" + pendingName);
+            } catch (Exception e) {
+                saveBackupFallback();
+            }
+            return;
+        }
         if (requestCode != REQ_PICK || resultCode != RESULT_OK || data == null || data.getData() == null) return;
         final Uri uri = data.getData();
         new Thread(new Runnable() {

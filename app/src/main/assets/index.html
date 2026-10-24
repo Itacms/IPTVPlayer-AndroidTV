@@ -6,43 +6,43 @@
 <title>Player IPTV</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.13/hls.min.js"></script>
 <style>
-:root{--logo-bg:#17171c;--logo-fg:#cfd3dd;--logo-sh:none;--bg:#0b0b0d;--panel:#1b1b20;--panel2:#26262d;--txt:#fff;--mut:#a7a7b2;--red:#e5262d}
+:root{--logo-bg:#17171c;--logo-fg:#cfd3dd;--logo-sh:none;--bg:#0b0b0d;--panel:#1b1b20;--panel2:#26262d;--txt:#fff;--mut:#a7a7b2;--red:#e5262d;--txt2:#dcdce2;--rail:#0c0c0f;--ring:#ffffff;--tabon:#e9e9ec;--tabfg:#111111;--line:#33333b;--glow:#e5262d55;--card-w:17vw;--card-ar:16 / 9}
 *{box-sizing:border-box}
 html,body{height:100%;margin:0;overflow:hidden;background:var(--bg);color:var(--txt);font:1.5vw/1.35 Poppins,Montserrat,Roboto,"Segoe UI",sans-serif}
 button,input{font:inherit;color:inherit}
 button{background:none;border:0;padding:0;text-align:left;cursor:pointer}
 button:focus,input:focus{outline:none}
 [data-f]{transition:transform .12s,box-shadow .12s,background .12s}
-[data-f]:focus{box-shadow:0 0 0 .22vw #fff;transform:scale(1.03);position:relative;z-index:3}
+[data-f]:focus{box-shadow:0 0 0 .22vw var(--ring);transform:scale(1.03);position:relative;z-index:3}
 svg{display:block;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 
 #app{position:relative;z-index:1;display:flex;height:100%}
-#rail{width:6.2vw;flex:none;background:#0c0c0f;display:flex;flex-direction:column;align-items:center;padding:3.2vh 0}
-.brand{font-weight:800;font-size:1.15vw;letter-spacing:.08em;color:#fff}
+#rail{width:6.2vw;flex:none;background:var(--rail);display:flex;flex-direction:column;align-items:center;padding:3.2vh 0}
+.brand{font-weight:800;font-size:1.15vw;letter-spacing:.08em;color:var(--txt)}
 .brand b{color:var(--red)}
 .ri{flex:1;display:flex;flex-direction:column;gap:3.4vh;align-items:center;margin-top:7vh}
 .rb{position:relative;width:4vw;height:4vw;display:grid;place-items:center;border-radius:1vw;color:var(--mut)}
 .rb svg{width:2.1vw;height:2.1vw}
-.rb.on{color:#fff}
+.rb.on{color:var(--txt)}
 .rb.on::after{content:"";position:absolute;bottom:.2vw;width:1vw;height:.18vw;background:var(--red);border-radius:2px}
-.rb:focus{background:#fff;color:#000}
+.rb:focus{background:var(--ring);color:var(--bg)}
 
 #content{flex:1;min-width:0;display:flex;flex-direction:column}
 #tabs{display:flex;gap:.6vw;padding:2.6vh 3vw 0;height:11vh;align-items:flex-start}
-.tab{font-size:2vw;font-weight:600;padding:.4vw 1.6vw;border-radius:99px;color:#fff}
-.tab.on{background:#e9e9ec;color:#111}
+.tab{font-size:2vw;font-weight:600;padding:.4vw 1.6vw;border-radius:99px;color:var(--txt)}
+.tab.on{background:var(--tabon);color:var(--tabfg)}
 #main{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden}
 #main::-webkit-scrollbar{display:none}
 #main.live{overflow:hidden}
 
 /* início */
 .hero{position:relative;height:49vh;padding:3vh 3vw 0;display:flex;justify-content:space-between;gap:3vw;
-  background:radial-gradient(ellipse at 78% 25%,#3b1217 0,transparent 62%)}
+  background:radial-gradient(ellipse at 78% 25%,var(--glow) 0,transparent 62%)}
 .hx{max-width:56vw}
-.hm{font-size:1.5vw;font-weight:600;color:#ddd;display:flex;align-items:center;gap:.8vw}
+.hm{font-size:1.5vw;font-weight:600;color:var(--txt2);display:flex;align-items:center;gap:.8vw}
 .badge{background:var(--red);color:#fff;font-size:1vw;font-weight:700;padding:.1vw .6vw;border-radius:.3vw;letter-spacing:.04em}
 .hero h1{font-size:4.6vw;line-height:1.08;margin:1.4vh 0;font-weight:800;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.hero p{margin:0;font-size:1.45vw;color:#d4d4da}
+.hero p{margin:0;font-size:1.45vw;color:var(--txt2)}
 .hl{flex:none;width:25vw;aspect-ratio:16/9;margin-top:1vh;background:var(--logo-bg);border-radius:1vw;display:grid;place-items:center;overflow:hidden;box-shadow:var(--logo-sh)}
 .hl img{width:74%;height:74%;object-fit:contain}
 .hl i,.th i,.glogo i,.plogo i{font-style:normal;font-weight:800;color:var(--logo-fg)}
@@ -50,8 +50,8 @@ svg{display:block;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:
 .row h2{font-size:1.7vw;margin:1.4vh 3vw 0;font-weight:700}
 .strip{display:flex;gap:1.2vw;overflow-x:auto;padding:1.6vh 3vw 2.6vh}
 .strip::-webkit-scrollbar{display:none}
-.card{flex:none;width:17vw;border-radius:.8vw;position:relative}
-.th{display:grid;place-items:center;aspect-ratio:16/9;background:var(--logo-bg);border-radius:.8vw;overflow:hidden}
+.card{flex:none;width:var(--card-w);border-radius:.8vw;position:relative}
+.th{display:grid;place-items:center;aspect-ratio:var(--card-ar);background:var(--logo-bg);border-radius:.8vw;overflow:hidden}
 .th img{width:76%;height:76%;object-fit:contain}
 .th i{font-size:2.2vw}
 .card b{display:block;margin-top:.8vh;font-weight:500;font-size:1.2vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -60,7 +60,7 @@ svg{display:block;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:
 .srow{margin:1.2vh 3vw 0;display:flex;gap:1vw;align-items:center}
 .sn{flex:1;min-width:0;font-size:1.5vw;font-weight:600}
 .sn small{display:block;color:var(--mut);font-size:1.1vw;font-weight:400}
-.diagbox{margin:1.2vh 3vw 0;padding:1.4vh 1.4vw;background:var(--panel);border-radius:.8vw;font:1.1vw/1.5 monospace;white-space:pre-wrap;word-break:break-all;color:#cfd3dd;min-height:2vh}
+.diagbox{margin:1.2vh 3vw 0;padding:1.4vh 1.4vw;background:var(--panel);border-radius:.8vw;font:1.1vw/1.5 monospace;white-space:pre-wrap;word-break:break-all;color:var(--txt2);min-height:2vh}
 .diagbox:empty{display:none}
 html.droid,html.droid body{background:transparent}
 body.nfull #app{visibility:hidden}
@@ -74,22 +74,22 @@ body.nfull #app{visibility:hidden}
 /* ao vivo */
 .live{position:relative;height:100%}
 .lhead{position:absolute;left:3vw;top:1vh;width:42vw}
-.lm{font-size:1.4vw;font-weight:600;color:#ddd;display:flex;align-items:center;gap:.8vw}
+.lm{font-size:1.4vw;font-weight:600;color:var(--txt2);display:flex;align-items:center;gap:.8vw}
 .lhead h1{font-size:3.2vw;line-height:1.1;font-weight:800;margin:.6vh 0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.lhead p{margin:0;font-size:1.35vw;color:#cfcfd6}
+.lhead p{margin:0;font-size:1.35vw;color:var(--txt2)}
 .lbody{position:absolute;left:0;right:0;top:36vh;bottom:0;display:flex;gap:1.4vw;padding:0 2vw 0 2.4vw}
 .cats{width:19vw;flex:none;overflow-y:auto;padding:.6vh .5vw}
 .cats::-webkit-scrollbar,.guide::-webkit-scrollbar{display:none}
-.cat{display:block;width:100%;padding:1.1vh 1.1vw;border-radius:.7vw;margin-bottom:.8vh;color:#b9b9c2;font-size:1.45vw;font-weight:600}
+.cat{display:block;width:100%;padding:1.1vh 1.1vw;border-radius:.7vw;margin-bottom:.8vh;color:var(--mut);font-size:1.45vw;font-weight:600}
 .cat small{display:block;font-size:1vw;font-weight:400;color:var(--mut)}
-.cat.on{background:var(--panel);color:#fff}
+.cat.on{background:var(--panel);color:var(--txt)}
 .guide{flex:1;overflow-y:auto;padding:.6vh .5vw}
 .grow{display:flex;gap:.7vw;width:100%;height:8.2vh;margin-bottom:1vh;border-radius:.5vw}
 .glogo{width:9vw;flex:none;background:var(--logo-bg);border-radius:.5vw;display:grid;place-items:center;overflow:hidden}
 .glogo img{max-width:72%;max-height:72%;object-fit:contain}
-.glogo i{font-size:1.6vw;color:#ccd}
+.glogo i{font-size:1.6vw;color:var(--logo-fg)}
 .gbar{flex:1;min-width:0;background:var(--panel);border-radius:.5vw;display:flex;align-items:center;gap:1.4vw;padding:0 1.4vw;position:relative;overflow:hidden}
-.gbar b{font-weight:500;font-size:1.45vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gbar b{font-weight:500;font-size:1.45vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:46%;flex:none}
 .gbar small{color:var(--mut);font-size:1.1vw;white-space:nowrap;margin-left:auto}
 .gbar::after{content:"";position:absolute;left:0;bottom:0;height:.5vh;width:var(--p,40%);background:var(--red)}
 .grow:focus .gbar,.grow:focus .glogo{background:var(--panel2)}
@@ -99,7 +99,10 @@ body.nfull #app{visibility:hidden}
 #v.mini{display:block;position:fixed;z-index:0;top:0;right:0;width:56vw;height:36vh;object-fit:cover;
   -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 28%);mask-image:linear-gradient(90deg,transparent 0,#000 28%)}
 #v.full{display:block;position:fixed;z-index:8;inset:0;width:100%;height:100%;object-fit:contain}
-#pov{position:fixed;inset:0;z-index:9;display:none}
+#pov{position:fixed;inset:0;z-index:9;display:none;color:#fff}
+#pov .pill{background:#ffffff26;color:#fff}
+#pov [data-f]:focus{box-shadow:0 0 0 .22vw #fff}
+#pov h3{color:#b7b7c2}
 #pov.on{display:block}
 #pmsg{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:4vw;font-size:1.8vw;pointer-events:none}
 #pmsg.err{color:#ff8a8f}
@@ -142,18 +145,31 @@ body.nfull #app{visibility:hidden}
 .ml img{width:76%;height:76%;object-fit:contain}
 .ml i{font-style:normal;font-weight:800;color:var(--logo-fg);font-size:1.1vw}
 
+#bgimg{position:fixed;inset:0;z-index:-1;display:none}
+.hx .btns{margin-top:2vh}
+.dots{display:flex;gap:.5vw;margin-top:2vh}
+.dots i{width:.8vw;height:.8vw;border-radius:99px;background:var(--mut);opacity:.5;transition:width .25s}
+.dots i.on{background:var(--red);opacity:1;width:2.2vw}
+@keyframes heroIn{from{opacity:0;transform:translateY(1.2vh)}to{opacity:1;transform:none}}
+.hero.swap .hx,.hero.swap .hl{animation:heroIn .55s}
+html.nonames .card b{display:none}
+html.tcover .th img{width:100%;height:100%;object-fit:cover}
+.gbar .ep{font-style:normal;color:var(--txt2);font-size:1.2vw;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pe{font-size:1.25vw;color:#e4e4ea;margin-top:.4vh;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
 /* busca e configurações */
 .field{margin:2.4vh 3vw 0;flex-wrap:wrap;display:flex;gap:1.2vw;align-items:center}
-input{flex:1;min-width:0;background:var(--panel);border:.15vw solid #33333b;border-radius:.8vw;padding:1.4vh 1.4vw}
-input:focus{border-color:#fff}
+input{flex:1;min-width:0;background:var(--panel);border:.15vw solid var(--line);border-radius:.8vw;padding:1.4vh 1.4vw}
+input:focus{border-color:var(--ring)}
 .pill{padding:1.3vh 2.4vw;border-radius:99px;background:var(--panel2);font-weight:600}
-.pill.main{background:#fff;color:#111}
-#toast{position:fixed;top:3vh;right:3vw;z-index:20;background:#fff;color:#111;padding:1vh 1.8vw;border-radius:99px;font-weight:600;opacity:0;transition:opacity .25s}
+.pill.main{background:var(--red);color:#fff}
+#toast{position:fixed;top:3vh;right:3vw;z-index:20;background:var(--txt);color:var(--bg);padding:1vh 1.8vw;border-radius:99px;font-weight:600;opacity:0;transition:opacity .25s}
 #toast.on{opacity:1}
 </style>
 </head>
 <body>
 <video id="v" playsinline muted poster="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"></video>
+<div id="bgimg"></div>
 <div id="pfade"></div>
 
 <div id="app">
@@ -182,7 +198,7 @@ input:focus{border-color:#fff}
     <div class="prow">
       <div class="pl">
         <div class="plogo" id="plogo"></div>
-        <div class="pt"><h2 id="pn"></h2><div class="pm"><span class="badge">AO VIVO</span><span id="pg"></span></div><div class="pline"><i></i></div><small>Cima/baixo: canal · Esquerda: painel · Direita: rodapé · OK: opções · OK 2x: favoritar</small></div>
+        <div class="pt"><h2 id="pn"></h2><div class="pm"><span class="badge">AO VIVO</span><span id="pg"></span></div><div id="pe" class="pe"></div><div class="pline"><i></i></div><small>Cima/baixo: canal · Esquerda: painel · Direita: rodapé · OK: opções · OK 2x: favoritar</small></div>
       </div>
       <div class="pctl"><button class="pill" data-f id="pplay" data-act="play">Pausar</button><button class="pill" data-f id="pfav" data-act="fav2">Favoritar</button><button class="pill" data-f data-act="menu">Opções</button><button class="pill" data-f data-act="back">Voltar</button></div>
     </div>
@@ -214,13 +230,56 @@ let view='home', rows=[], ctx=[], cur=-1, loaded=-1, mode='off', hls=null, cat='
 const HEART='<svg viewBox="0 0 24 24"><path d="M12 21s-8-5.4-8-11a4.5 4.5 0 018-2.8A4.5 4.5 0 0120 10c0 5.6-8 11-8 11z"/></svg>';
 
 /* ---------- lista M3U ---------- */
+/* ---------- temas, miniaturas, slide e fundo ---------- */
+const THEMES={
+ dark:{n:'Escuro',bg:'#0b0b0d',panel:'#1b1b20',panel2:'#26262d',txt:'#ffffff',txt2:'#dcdce2',mut:'#a7a7b2',rail:'#0c0c0f',ring:'#ffffff',tabon:'#e9e9ec',tabfg:'#111111',line:'#33333b'},
+ navy:{n:'Azul escuro',bg:'#09101f',panel:'#121c33',panel2:'#1b2a4a',txt:'#f2f6ff',txt2:'#cdd8f0',mut:'#93a4c7',rail:'#0a1224',ring:'#ffffff',tabon:'#dce8ff',tabfg:'#0b1730',line:'#2a3a5e'},
+ sky:{n:'Azul claro',light:1,bg:'#e8f2ff',panel:'#ffffff',panel2:'#d3e5fb',txt:'#0f2038',txt2:'#2b4467',mut:'#5b7396',rail:'#d7e8fb',ring:'#0f2038',tabon:'#1769e0',tabfg:'#ffffff',line:'#b8cfee'},
+ light:{n:'Claro',light:1,bg:'#f4f4f6',panel:'#ffffff',panel2:'#e4e4ea',txt:'#17171c',txt2:'#3a3a44',mut:'#6a6a78',rail:'#e9e9ee',ring:'#17171c',tabon:'#17171c',tabfg:'#ffffff',line:'#cfcfd8'}
+};
+const ACCENTS={red:['Vermelho','#e5262d'],blue:['Azul','#2f80ff'],green:['Verde','#22b765'],purple:['Roxo','#8b5cf6'],orange:['Laranja','#f59e0b'],pink:['Rosa','#ec4899']};
+const SLIDES=[['Desligado',0],['5 segundos',5],['8 segundos',8],['12 segundos',12]];
+const UI_DEF={theme:'dark',accent:'red',bgmode:'theme',bgurl:'',slide:2,thumbSize:1,thumbShape:0,thumbName:1,thumbFit:0,logoPri:0,epgIcons:1};
+let ui=Object.assign({},UI_DEF,store.get('tv_ui',{}));
+const saveUI=()=>store.set('tv_ui',ui);
+function applyUI(){
+  const t=THEMES[ui.theme]||THEMES.dark,a=(ACCENTS[ui.accent]||ACCENTS.red)[1],root=document.documentElement,s=root.style;
+  const m={bg:t.bg,panel:t.panel,panel2:t.panel2,txt:t.txt,txt2:t.txt2,mut:t.mut,rail:t.rail,ring:t.ring,tabon:t.tabon,tabfg:t.tabfg,line:t.line,red:a,glow:a+'55'};
+  for(const k in m)s.setProperty('--'+k,m[k]);
+  s.setProperty('--card-w',['13vw','17vw','21vw'][ui.thumbSize]||'17vw');
+  s.setProperty('--card-ar',['16 / 9','4 / 3','1 / 1'][ui.thumbShape]||'16 / 9');
+  root.classList.toggle('nonames',!ui.thumbName);
+  root.classList.toggle('tcover',ui.thumbFit===1);
+  const bg=document.getElementById('bgimg');
+  if(bg){
+    const veil=t.light?'rgba(255,255,255,.8)':'rgba(0,0,0,.62)';
+    if(ui.bgmode==='image'&&ui.bgurl){bg.style.background='linear-gradient('+veil+','+veil+'),url("'+ui.bgurl.replace(/"/g,'%22')+'") center/cover no-repeat';bg.style.display='block'}
+    else if(ui.bgmode==='gradient'){bg.style.background='radial-gradient(ellipse at 12% 8%,var(--glow),transparent 55%),linear-gradient(160deg,var(--panel),var(--bg))';bg.style.display='block'}
+    else bg.style.display='none';
+  }
+  try{if(window.Android&&typeof Android.setBackground!=='undefined')Android.setBackground(t.bg)}catch(e){}
+}
+const OPTS={
+ theme:{label:'Tema',vals:Object.keys(THEMES),name:v=>THEMES[v].n},
+ accent:{label:'Cor de destaque',vals:Object.keys(ACCENTS),name:v=>ACCENTS[v][0]},
+ bgmode:{label:'Fundo',vals:['theme','gradient','image'],name:v=>({theme:'Do tema',gradient:'Gradiente',image:'Imagem'})[v]},
+ slide:{label:'Slide do destaque',vals:[0,1,2,3],name:v=>SLIDES[v][0]},
+ thumbSize:{label:'Tamanho das miniaturas',vals:[0,1,2],name:v=>['Pequeno','Médio','Grande'][v]},
+ thumbShape:{label:'Formato das miniaturas',vals:[0,1,2],name:v=>['Wide 16:9','4:3','Quadrado'][v]},
+ thumbName:{label:'Nome sob a miniatura',vals:[1,0],name:v=>v?'Mostrar':'Ocultar'},
+ thumbFit:{label:'Ajuste da logo',vals:[0,1],name:v=>['Conter','Preencher'][v]},
+ logoPri:{label:'Prioridade das logos',vals:[0,1],name:v=>['Lista M3U primeiro','Fontes de logo primeiro'][v]},
+ epgIcons:{label:'Ícones do EPG como logo',vals:[1,0],name:v=>v?'Sim':'Não'}
+};
+const optBtn=k=>`<button class="pill" data-f data-opt="${k}">${OPTS[k].label}: ${OPTS[k].name(ui[k])}</button>`;
+
 function parseM3U(text){
   const out=[];let info=null;
   for(const raw of text.split(/\r?\n/)){
     const l=raw.trim();if(!l)continue;
     if(l.startsWith('#EXTINF')){
       const at=n=>{const m=l.match(new RegExp(n+'="([^"]*)"','i'));return m?m[1]:''};
-      info={name:(l.split(/,(.*)$/)[1]||at('tvg-name')||'Sem nome').trim(),logo:at('tvg-logo'),group:at('group-title')};
+      info={name:(l.split(/,(.*)$/)[1]||at('tvg-name')||'Sem nome').trim(),logo:at('tvg-logo'),group:at('group-title'),tvid:at('tvg-id')};
     }else if(!l.startsWith('#')){
       if(info){out.push({...info,url:l});info=null}
       else if(/^(https?|rtmp|rtsp):/.test(l))out.push({name:l,logo:'',group:'',url:l});
@@ -287,13 +346,130 @@ function classify(n){
 function rebuild(){
   const seen=new Set();ch=[];
   sources.forEach(s=>{if(!s.on)return;(parsed[s.id]||[]).forEach(c=>{if(!seen.has(c.url)){seen.add(c.url);ch.push(c)}})});
-  ch.forEach(c=>{c.cat=catmap[c.url]||(c.group||'').trim()||classify(c.name)});
+  ch.forEach((c,i)=>{c._i=i;c._lc=null;c.cat=catmap[c.url]||(c.group||'').trim()||classify(c.name)});
   cur=-1;loaded=-1;
 }
 const byUrl=u=>ch.findIndex(c=>c.url===u);
 const clean=n=>n.replace(/^\d+\s*/,'');
 const initials=n=>(clean(n).match(/[A-Za-zÀ-ú0-9]/g)||['?']).slice(0,2).join('').toUpperCase();
-const logoHTML=c=>c.logo?`<img src="${esc(c.logo)}" alt="" onerror="this.replaceWith(document.createTextNode('${initials(c.name)}'))">`:`<i>${initials(c.name)}</i>`;
+/* ---------- EPG (guia de programação) e fontes de logo ---------- */
+let epgSources=store.get('tv_epgsrc',[]),logoSrc=store.get('tv_logosrc',[]);
+let epgData={},epgIcon={},epgAt=0,epgBusy=false;
+{const c0=store.get('tv_epgcache',null);if(c0&&c0.data){epgData=c0.data;epgIcon=c0.icon||{};epgAt=c0.at||0}}
+const saveEpgSrc=()=>store.set('tv_epgsrc',epgSources.map(({id,name,url,on})=>({id,name,url,on})));
+const saveLogoSrc=()=>store.set('tv_logosrc',logoSrc);
+const nrm=s=>(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/^\d+\s+/,'').replace(/[^a-z0-9]+/g,'');
+const slug=n=>clean(n).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
+const ekeys=c=>c._ek||(c._ek=[(c.tvid||'').toLowerCase(),nrm(c.name)].filter(Boolean));
+function epgFor(c){for(const k of ekeys(c)){if(epgData[k])return epgData[k]}return null}
+function epgNow(c){
+  const a=epgFor(c);if(!a)return null;
+  const n=Date.now(),i=a.findIndex(p=>p.s<=n&&p.e>n);
+  if(i<0)return null;
+  return {cur:a[i],next:a[i+1]||null,pct:Math.max(0,Math.min(100,Math.round((n-a[i].s)/(a[i].e-a[i].s)*100)))};
+}
+const hm=t=>new Date(t).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+function epgLine(c){
+  const e=epgNow(c);if(!e)return '';
+  return 'Agora: '+e.cur.t+' ('+hm(e.cur.s)+'–'+hm(e.cur.e)+')'+(e.next?' · Depois: '+e.next.t:'');
+}
+function xt(s){
+  const m=(s||'').match(/^(\d{4})(\d\d)(\d\d)(\d\d)(\d\d)(\d\d)?\s*([+-])?(\d\d)?(\d\d)?/);
+  if(!m)return 0;
+  let t=Date.UTC(+m[1],+m[2]-1,+m[3],+m[4],+m[5],+(m[6]||0));
+  if(m[7]){const off=(+m[8]*60+ +(m[9]||0))*60000;t+=m[7]==='+'?-off:off}
+  return t;
+}
+const xattr=(a,n)=>{const m=a.match(new RegExp('\\b'+n+'="([^"]*)"'));return m?m[1]:''};
+const unx=s=>s.replace(/<!\[CDATA\[|\]\]>/g,'').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&apos;|&#39;/g,"'").replace(/&amp;/g,'&');
+async function fetchEpg(u){
+  const c=new AbortController(),t=setTimeout(()=>c.abort(),90000);
+  try{
+    const r=await fetch(u,{signal:c.signal});if(!r.ok)throw new Error('HTTP '+r.status);
+    const buf=new Uint8Array(await r.arrayBuffer());
+    if(buf[0]===0x1f&&buf[1]===0x8b){
+      if(!window.DecompressionStream)throw new Error('arquivo .gz sem suporte neste aparelho');
+      return await new Response(new Blob([buf]).stream().pipeThrough(new DecompressionStream('gzip'))).text();
+    }
+    return new TextDecoder('utf-8').decode(buf);
+  }finally{clearTimeout(t)}
+}
+async function parseEpg(xml,want,data,icon){
+  const info={};let m,n=0;
+  const reC=/<channel\s+([^>]*?)>([\s\S]*?)<\/channel>/g;
+  while((m=reC.exec(xml))){
+    const xid=xattr(m[1],'id');if(!xid)continue;
+    const keys=[xid.toLowerCase()];
+    const reN=/<display-name[^>]*>([\s\S]*?)<\/display-name>/g;let mn;
+    while((mn=reN.exec(m[2])))keys.push(nrm(unx(mn[1])));
+    if(!keys.some(k=>k&&want.has(k)))continue;
+    const ic=m[2].match(/<icon\s+[^>]*src="([^"]*)"/);
+    info[xid]={keys:keys.filter(Boolean),icon:ic?unx(ic[1]):''};
+    if(++n%400===0)await new Promise(r=>setTimeout(r));
+  }
+  const now=Date.now(),lo=now-30*60000,hi=now+14*3600000,tmp={};
+  const reP=/<programme\s+([^>]*?)>([\s\S]*?)<\/programme>/g;let cnt=0,progs=0;
+  while((m=reP.exec(xml))){
+    const a=m[1],xid=xattr(a,'channel');
+    if(info[xid]){
+      const s=xt(xattr(a,'start')),e=xt(xattr(a,'stop'));
+      if(e>lo&&s<hi){
+        const t=m[2].match(/<title[^>]*>([\s\S]*?)<\/title>/),d=m[2].match(/<desc[^>]*>([\s\S]*?)<\/desc>/);
+        (tmp[xid]=tmp[xid]||[]).push({s,e,t:t?unx(t[1]).trim():'',d:d?unx(d[1]).trim().slice(0,240):''});
+        progs++;
+      }
+    }
+    if(++cnt%3000===0)await new Promise(r=>setTimeout(r));
+  }
+  for(const xid in tmp){
+    const arr=tmp[xid].sort((x,y)=>x.s-y.s).slice(0,8);
+    info[xid].keys.forEach(k=>{if(!data[k])data[k]=arr});
+  }
+  for(const xid in info){const inf=info[xid];if(inf.icon)inf.keys.forEach(k=>{if(!icon[k])icon[k]=inf.icon})}
+  return progs;
+}
+async function loadEpg(){
+  if(epgBusy)return 0;
+  const act=epgSources.filter(s=>s.on&&s.url);
+  if(!act.length){epgData={};epgIcon={};epgAt=0;store.set('tv_epgcache',null);resetLogos();return 0}
+  epgBusy=true;
+  const want=new Set();ch.forEach(c=>ekeys(c).forEach(k=>want.add(k)));
+  const data={},icon={};let progs=0;
+  for(const s of act){
+    try{progs+=await parseEpg(await fetchEpg(s.url),want,data,icon);s.err=''}
+    catch(e){s.err=String((e&&e.message)||e)}
+  }
+  epgBusy=false;
+  if(progs||Object.keys(data).length){epgData=data;epgIcon=icon;epgAt=Date.now();store.set('tv_epgcache',{at:epgAt,data,icon})}
+  saveEpgSrc();resetLogos();
+  return progs;
+}
+function resetLogos(){ch.forEach(c=>{c._lc=null})}
+function logoCands(c){
+  if(c._lc)return c._lc;
+  const ex=[];
+  logoSrc.forEach(s=>{
+    if(!s.on||!s.tpl)return;
+    if(s.tpl.includes('{id}')&&!c.tvid)return;
+    ex.push(s.tpl.replace(/\{slug\}/g,slug(c.name)).replace(/\{name\}/g,encodeURIComponent(clean(c.name))).replace(/\{id\}/g,encodeURIComponent(c.tvid||'')));
+  });
+  let ei=[];
+  if(ui.epgIcons){for(const k of ekeys(c)){if(epgIcon[k]){ei=[epgIcon[k]];break}}}
+  const own=c.logo?[c.logo]:[];
+  const all=(ui.logoPri===1?[...ex,...own,...ei]:[...own,...ex,...ei]).filter((u,i,a)=>u&&a.indexOf(u)===i);
+  return c._lc=all;
+}
+const logoHTML=c=>{
+  const L=logoCands(c);
+  return L.length?`<img src="${esc(L[0])}" alt="" data-ci="${c._i}" data-k="0" onerror="lf(this)">`:`<i>${initials(c.name)}</i>`;
+};
+window.lf=img=>{
+  const c=ch[+img.dataset.ci];
+  if(!c){img.remove();return}
+  const L=logoCands(c),k=+img.dataset.k+1;
+  if(k<L.length){img.dataset.k=k;img.src=L[k]}
+  else{const i=document.createElement('i');i.textContent=initials(c.name);img.replaceWith(i)}
+};
 const prog=i=>20+((i*37)%61);
 
 function cats(){
@@ -327,12 +503,26 @@ function render(){
   document.querySelectorAll('[data-v]').forEach(b=>b.classList.toggle('on',b.dataset.v===view));
   ({home:renderHome,live:renderLive,favs:renderFavs,search:renderSearch,cfg:renderCfg})[view]();
 }
-function heroSet(i){
-  const c=ch[i];if(!$('#ht'))return;
+let heroIdx=-1,lastHeroAt=Date.now(),slideList=[];
+function heroSet(i,anim){
+  const c=ch[i];if(!c||!$('#ht'))return;
+  heroIdx=i;lastHeroAt=Date.now();
   $('#ht').textContent=clean(c.name);
   $('#hm').innerHTML=`<span class="badge">AO VIVO</span>${esc(c.cat||'Canal de TV')}`;
-  $('#hd').textContent=`Assista agora a ${clean(c.name)} ao vivo.`;
+  $('#hd').textContent=epgLine(c)||`Assista agora a ${clean(c.name)} ao vivo.`;
   $('#hl').innerHTML=logoHTML(c);
+  document.querySelectorAll('#hdots i').forEach((e,k)=>e.classList.toggle('on',slideList[k]===i));
+  const h=$('.hero');
+  if(h&&anim){h.classList.remove('swap');void h.offsetWidth;h.classList.add('swap')}
+}
+function slideTick(){
+  const s=(SLIDES[ui.slide]||SLIDES[0])[1];
+  if(!s||view!=='home'||mode!=='off'||slideList.length<2||!$('#ht'))return;
+  const a=document.activeElement;
+  if(a&&a!==document.body&&a.id!=='hplay')return;
+  if(Date.now()-lastHeroAt<s*1000)return;
+  const p=slideList.indexOf(heroIdx);
+  heroSet(slideList[(p+1)%slideList.length],true);
 }
 function renderHome(){
   if(!ch.length){
@@ -340,7 +530,9 @@ function renderHome(){
     return;
   }
   const rec=recent.map(byUrl).filter(i=>i>=0), fi=rec.length?rec[0]:0;
-  main.innerHTML=`<div class="hero"><div class="hx"><div class="hm" id="hm"></div><h1 id="ht"></h1><p id="hd"></p></div><div class="hl" id="hl"></div></div>`+
+  const fl=[...favs].map(byUrl).filter(i=>i>=0),cs0=cats().filter(c=>c.idx.length&&c.k!=='Recentes'&&c.k!=='Favoritos');
+  slideList=[...new Set([fi,...rec.slice(0,3),...fl.slice(0,3),...cs0.map(c=>c.idx[0])])].slice(0,8);
+  main.innerHTML=`<div class="hero"><div class="hx"><div class="hm" id="hm"></div><h1 id="ht"></h1><p id="hd"></p><div class="btns"><button class="pill main" data-f id="hplay">Assistir</button></div><div class="dots" id="hdots">${slideList.map(()=>'<i></i>').join('')}</div></div><div class="hl" id="hl"></div></div>`+
     cats().filter(c=>c.idx.length).map(c=>rowHTML(c.k==='Recentes'?'Assistidos recentemente':c.k,c.idx)).join('');
   heroSet(fi);
 }
@@ -362,7 +554,7 @@ function renderSearch(){
   $('#q').addEventListener('input',doSearch);
   doSearch();
 }
-const LOGOS=[['Escuro','#17171c','#cfd3dd','none'],['Transparente','transparent','#cfd3dd','none'],['Claro','#f4f4f6','#445','0 2vw 5vw #000a']];
+const LOGOS=[['Escuro','#17171c','#cfd3dd','none'],['Transparente','transparent','#cfd3dd','none'],['Claro','#f4f4f6','#445','0 2vw 5vw #000a'],['Do tema','var(--panel2)','var(--txt2)','none']];
 function applyLogo(){
   const L=LOGOS[store.get('tv_logo',0)]||LOGOS[0],s=document.documentElement.style;
   s.setProperty('--logo-bg',L[1]);s.setProperty('--logo-fg',L[2]);s.setProperty('--logo-sh',L[3]);
@@ -382,11 +574,29 @@ function saveUA(ua){
 function renderCfg(){
   const ua=getUA();
   const rowsH=sources.length?sources.map(s=>`<div class="srow"><div class="sn">${esc(s.name)}<small>${s.on?(s.count?s.count+' canais':'sem canais ou erro ao baixar'):'desativada'}</small></div><button class="pill" data-f data-sen="${s.id}">${s.on?'Desativar':'Ativar'}</button><button class="pill" data-f data-sdel="${s.id}">Remover</button></div>`).join(''):'<div class="sub">Nenhuma lista adicionada.</div>';
+  const epgRows=epgSources.map(s=>`<div class="srow"><div class="sn">${esc(s.name)}<small>${s.on?(s.err?esc('Erro: '+s.err):esc(hostOf(s.url))):'desativada'}</small></div><button class="pill" data-f data-een="${s.id}">${s.on?'Desativar':'Ativar'}</button><button class="pill" data-f data-edel="${s.id}">Remover</button></div>`).join('');
+  const logoRows=logoSrc.map(s=>`<div class="srow"><div class="sn">${esc(s.name)}<small>${esc(s.tpl)}</small></div><button class="pill" data-f data-len="${s.id}">${s.on?'Desativar':'Ativar'}</button><button class="pill" data-f data-ldel="${s.id}">Remover</button></div>`).join('');
+  const epgInfo=epgAt?`Atualizado às ${hm(epgAt)} · ${ch.filter(c=>epgFor(c)).length} canais com programação`:'EPG ainda não carregado';
   main.innerHTML=`<div class="title">Configurações</div><div class="sub">${ch.length} canais de ${sources.filter(s=>s.on).length} lista(s) ativa(s)</div>
   <div class="sec">Listas de canais</div>
   ${rowsH}
   <div class="field"><input id="sname" type="text" placeholder="Nome (opcional)" style="flex:.45"><input id="url" type="url" placeholder="https://exemplo.com/lista.m3u"><button class="pill main" data-f id="badd">Adicionar</button><button class="pill" data-f id="bfile">Subir lista local</button><button class="pill" data-f id="breload">Atualizar</button></div>
   <div class="sub" id="lmsg" style="margin-top:1.4vh"></div>
+  <div class="sec">Guia de programação (EPG)</div>
+  ${epgRows||'<div class="sub">Nenhuma fonte de EPG. Use o endereço de um arquivo XMLTV (.xml ou .xml.gz).</div>'}
+  <div class="field"><input id="ename" type="text" placeholder="Nome (opcional)" style="flex:.45"><input id="eurl" type="url" placeholder="https://exemplo.com/epg.xml.gz"><button class="pill main" data-f id="badde">Adicionar EPG</button><button class="pill" data-f id="brepg">Atualizar EPG</button></div>
+  <div class="sub" id="emsg" style="margin-top:1.4vh">${esc(epgInfo)}</div>
+  <div class="sec">Fontes de logos</div>
+  ${logoRows||'<div class="sub">Nenhuma fonte de logos. Sem ela, valem as logos da lista M3U.</div>'}
+  <div class="field"><input id="lname" type="text" placeholder="Nome (opcional)" style="flex:.45"><input id="ltpl" type="url" placeholder="https://servidor/logos/{slug}.png"><button class="pill main" data-f id="baddl">Adicionar fonte</button></div>
+  <div class="sub" style="margin-top:1.4vh">No endereço use {slug} (nome do canal em minúsculas, com hífens), {name} (nome do canal) ou {id} (tvg-id da lista).</div>
+  <div class="sec">Aparência</div>
+  <div class="field">${optBtn('theme')}${optBtn('accent')}${optBtn('bgmode')}</div>
+  <div class="field"><input id="bgurl" type="url" placeholder="Endereço da imagem de fundo (https://…)" value="${esc(ui.bgurl)}"><button class="pill main" data-f id="bgapply">Aplicar imagem</button></div>
+  <div class="field"><button class="pill" data-f id="blogo">Fundo das logos: ${LOGOS[store.get('tv_logo',0)][0]}</button>${optBtn('slide')}</div>
+  <div class="sec">Miniaturas</div>
+  <div class="field">${optBtn('thumbSize')}${optBtn('thumbShape')}${optBtn('thumbName')}</div>
+  <div class="field">${optBtn('thumbFit')}${optBtn('logoPri')}${optBtn('epgIcons')}</div>
   <div class="sec">Player e diagnóstico</div>
   <div class="field"><button class="pill" data-f id="bplaymode">Player: ${modeLabel()}</button><button class="pill" data-f id="bdiag">Ver diagnóstico</button></div>
   <div class="sub" id="diagmsg" style="margin-top:1vh">${esc(lastDiag)}</div>
@@ -395,8 +605,9 @@ function renderCfg(){
   <div class="field"><input id="ua" type="text" placeholder="Padrão do aplicativo" value="${esc(ua)}"><button class="pill main" data-f id="bua">Salvar</button></div>
   <div class="field"><button class="pill" data-f data-ua="VLC/3.0.20 LibVLC/3.0.20">VLC</button><button class="pill" data-f data-ua="Lavf/60.16.100">FFmpeg</button><button class="pill" data-f data-ua="okhttp/4.12.0">OkHttp</button><button class="pill" data-f data-ua="">Padrão</button></div>
   <div class="sub" id="uamsg" style="margin-top:1.4vh"></div>
-  <div class="sec">Aparência</div>
-  <div class="field"><button class="pill" data-f id="blogo">Fundo das logos: ${LOGOS[store.get('tv_logo',0)][0]}</button></div>`;
+  <div class="sec">Backup local</div>
+  <div class="field"><button class="pill main" data-f id="bbackup">Fazer backup</button><button class="pill" data-f id="brestore">Restaurar backup</button></div>
+  <div class="sub" id="bmsg" style="margin-top:1.4vh">Salva listas, favoritos, categorias, fontes de EPG e logos, temas e ajustes em um arquivo .json.</div>`;
 }
 const lmsg=(t,e)=>{const m=$('#lmsg');if(m){m.textContent=t;m.style.color=e?'#ff8a8f':'var(--mut)'}};
 async function addSource(name,url){
@@ -429,13 +640,13 @@ function renderLive(){
 }
 function fillGuide(){
   const c=cats().find(c=>c.k===cat);ctx=c?c.idx.slice(0,150):[];
-  $('#gd').innerHTML=ctx.length?ctx.map(i=>{const x=ch[i];return `<button class="grow ${favs.has(x.url)?'fav':''}" data-f data-i="${i}"><span class="glogo">${logoHTML(x)}</span><span class="gbar" style="--p:${prog(i)}%"><b>${esc(x.name)}</b><small>Ao vivo</small></span></button>`}).join(''):'<div class="empty">Nenhum canal aqui ainda.</div>';
+  $('#gd').innerHTML=ctx.length?ctx.map(i=>{const x=ch[i],e=epgNow(x);return `<button class="grow ${favs.has(x.url)?'fav':''}" data-f data-i="${i}"><span class="glogo">${logoHTML(x)}</span><span class="gbar" style="--p:${e?e.pct:prog(i)}%"><b>${esc(x.name)}</b>${e?`<em class="ep">${esc(e.cur.t)}</em>`:''}<small>${e?hm(e.cur.s)+'–'+hm(e.cur.e):'Ao vivo'}</small></span></button>`}).join(''):'<div class="empty">Nenhum canal aqui ainda.</div>';
 }
 function setLiveInfo(i){
   const c=ch[i];if(!c||!$('#lt'))return;
   $('#lm').innerHTML=`<span class="badge">AO VIVO</span>${esc(c.cat||'Canal de TV')}`;
   $('#lt').textContent=clean(c.name);
-  $('#ld').textContent='Pressione OK para assistir em tela cheia.';
+  $('#ld').textContent=epgLine(c)||'Pressione OK para assistir em tela cheia.';
 }
 function previewSoon(i){
   setLiveInfo(i);clearTimeout(tmr);
@@ -609,6 +820,11 @@ window.onNative=msg=>{
   const k=msg.split(':')[0],d=msg.slice(k.length+1);
   if(k==='nofilemanager'){lmsg('Esta TV não tem gerenciador de arquivos. Instale um (ex.: X-plore) ou use o endereço da lista.',true);return}
   if(k==='filepick'){lmsg('Não foi possível ler o arquivo escolhido.',true);return}
+  if(k==='backup'){
+    const st=d.split(':')[0],x=d.slice(st.length+1);
+    if(st==='ok')bmsg('Backup salvo: '+x);else if(st==='path')bmsg('Backup salvo em: '+x);else bmsg('Não foi possível salvar o backup.',true);
+    return;
+  }
   if(!isNative)return;
   if(k==='playing'){nPaused=false;setPlayLabel(false);if(!stickyMsg)pm('');diag('ExoPlayer: reproduzindo.')}
   else if(k==='paused'){nPaused=true;setPlayLabel(true)}
@@ -644,6 +860,7 @@ function updFav(){
 function showInfo(i){
   const c=ch[i];
   $('#plogo').innerHTML=logoHTML(c);$('#pn').textContent=clean(c.name);$('#pg').textContent=c.cat||'Canal de TV';
+  {const e=epgNow(c);$('#pe').textContent=e?epgLine(c):'';$('.pline i').style.width=(e?e.pct:60)+'%'}
   updFav();$('#pplay').textContent=(isNative?nPaused:v.paused)?'Reproduzir':'Pausar';
   $('#pmc').innerHTML=ctx.map(k=>`<button class="pc ${k===i?'cur':''}" data-f data-pc="${k}"><span class="ml">${logoHTML(ch[k])}</span><b>${esc(clean(ch[k].name))}</b></button>`).join('');
   const cb=$('#pmc .cur');if(cb){const s=$('#pmc');s.scrollLeft=cb.offsetLeft-s.clientWidth/2+cb.clientWidth/2}
@@ -775,10 +992,39 @@ function go(name){
   clearTimeout(tmr);
   if(mode!=='off')setMode('off');
   view=name;render();
-  focusEl(main.querySelector('.grow,[data-i],input,[data-f]')||document.querySelector('.rb'));
+  const first=view==='live'?(main.querySelector('.grow')||main.querySelector('.cat.on')):main.querySelector('.grow,[data-i],input,[data-f]');
+  focusEl(first||document.querySelector('.rb'));
 }
 document.addEventListener('click',e=>{
   const t=e.target.closest('button');if(!t)return;
+  if(t.id==='hplay'){ctx=slideList.includes(heroIdx)?slideList.slice():[heroIdx];openFull(heroIdx);return}
+  if(t.dataset.opt){
+    const k=t.dataset.opt,o=OPTS[k],i=o.vals.indexOf(ui[k]);
+    ui[k]=o.vals[(i+1)%o.vals.length];saveUI();applyUI();
+    if(k==='logoPri'||k==='epgIcons')resetLogos();
+    t.textContent=o.label+': '+o.name(ui[k]);return;
+  }
+  if(t.id==='bgapply'){ui.bgurl=$('#bgurl').value.trim();if(ui.bgurl)ui.bgmode='image';saveUI();applyUI();renderCfg();focusEl($('#bgapply'));return}
+  if(t.id==='bbackup'){doBackup();return}
+  if(t.id==='brestore'){pickLocal();return}
+  if(t.id==='badde'){
+    const u=$('#eurl').value.trim();if(!u){$('#emsg').textContent='Digite o endereço do EPG.';return}
+    epgSources.push({id:uid(),name:$('#ename').value.trim()||hostOf(u),url:u,on:true});saveEpgSrc();
+    $('#emsg').textContent='Baixando o guia de programação… pode levar alguns instantes.';
+    loadEpg().then(n=>{renderCfg();$('#emsg').textContent=n?n+' programas carregados.':'Nenhum programa encontrado para os seus canais. Confira o endereço e os nomes/ids dos canais.';focusEl($('#badde'))});return;
+  }
+  if(t.id==='brepg'){
+    $('#emsg').textContent='Atualizando o guia de programação…';
+    loadEpg().then(n=>{renderCfg();$('#emsg').textContent=n?n+' programas carregados.':'Nenhum programa encontrado.';focusEl($('#brepg'))});return;
+  }
+  if(t.dataset.een){const s=epgSources.find(x=>x.id===t.dataset.een);s.on=!s.on;saveEpgSrc();renderCfg();focusEl(main.querySelector(`[data-een="${s.id}"]`));return}
+  if(t.dataset.edel){epgSources=epgSources.filter(x=>x.id!==t.dataset.edel);saveEpgSrc();renderCfg();focusEl(main.querySelector('[data-f]'));return}
+  if(t.id==='baddl'){
+    const tp=$('#ltpl').value.trim();if(!tp||!/\{(slug|name|id)\}/.test(tp)){$('#emsg').textContent='Use {slug}, {name} ou {id} no endereço da fonte de logos.';return}
+    logoSrc.push({id:uid(),name:$('#lname').value.trim()||hostOf(tp),tpl:tp,on:true});saveLogoSrc();resetLogos();renderCfg();focusEl($('#baddl'));return;
+  }
+  if(t.dataset.len){const s=logoSrc.find(x=>x.id===t.dataset.len);s.on=!s.on;saveLogoSrc();resetLogos();renderCfg();focusEl(main.querySelector(`[data-len="${s.id}"]`));return}
+  if(t.dataset.ldel){logoSrc=logoSrc.filter(x=>x.id!==t.dataset.ldel);saveLogoSrc();resetLogos();renderCfg();focusEl(main.querySelector('[data-f]'));return}
   if(t.dataset.mi!==undefined){const i=+t.dataset.mi;cur=i;lastFocus=i;load(i);remember(i);closeMenu();return}
   if(t.dataset.pc!==undefined){const i=+t.dataset.pc;cur=i;lastFocus=i;load(i);remember(i);showInfo(i);return}
   if(t.dataset.act){
@@ -804,7 +1050,7 @@ document.addEventListener('click',e=>{
     twoClick('i'+i,()=>{if(r!==undefined)ctx=rows[+r]||[i];openFull(i)},()=>toggleFav(i));return;
   }
   if(t.id==='badd'){addSource($('#sname').value.trim(),$('#url').value.trim());return}
-  if(t.id==='bfile'){if(window.Android&&typeof Android.pickFile!=='undefined')Android.pickFile();else $('#file').click();return}
+  if(t.id==='bfile'){pickLocal();return}
   if(t.id==='bplaymode'){cycleMode();return}
   if(t.id==='bdiag'){showDiag();return}
   if(t.id==='breload'){reloadAll();return}
@@ -824,6 +1070,43 @@ document.addEventListener('click',e=>{
 });
 
 /* ---------- início ---------- */
+const bmsg=(t,e)=>{const m=$('#bmsg');if(m){m.textContent=t;m.style.color=e?'#ff8a8f':'var(--mut)'}};
+function makeBackup(){
+  const ls={};
+  for(let i=0;i<localStorage.length;i++){
+    const k=localStorage.key(i);
+    if(k&&k.startsWith('tv_')&&!k.startsWith('tv_src_')&&k!=='tv_epgcache')ls[k]=localStorage.getItem(k);
+  }
+  const lists={};
+  sources.forEach(s=>{if(!s.url){const t=cacheGet(s.id);if(t)lists[s.id]=t}});
+  return JSON.stringify({iptvBackup:1,date:new Date().toISOString(),ua:getUA(),ls,lists});
+}
+function doBackup(){
+  const name='iptv-backup-'+new Date().toISOString().slice(0,10)+'.json',text=makeBackup();
+  if(window.Android&&typeof Android.saveBackup!=='undefined'){Android.saveBackup(name,text);bmsg('Escolha onde salvar o arquivo…');return}
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([text],{type:'application/json'}));a.download=name;
+  document.body.appendChild(a);a.click();
+  setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1000);
+  bmsg('Backup salvo: '+name);
+}
+function restoreBackup(text){
+  let b;try{b=JSON.parse(text)}catch(e){return false}
+  if(!b||!b.iptvBackup)return false;
+  Object.keys(b.ls||{}).forEach(k=>{try{localStorage.setItem(k,b.ls[k])}catch(e){}});
+  Object.keys(b.lists||{}).forEach(id=>cacheSet(id,b.lists[id]));
+  try{if(typeof b.ua==='string'&&window.Android&&typeof Android.setUserAgent!=='undefined')Android.setUserAgent(b.ua)}catch(e){}
+  return true;
+}
+function handlePicked(name,text){
+  if(/^\s*\{/.test(text)&&text.includes('iptvBackup')){
+    if(restoreBackup(text)){toast('Backup restaurado. Reiniciando…');setTimeout(()=>location.reload(),900)}
+    else bmsg('Arquivo de backup inválido.',true);
+    return;
+  }
+  addLocal(name,text);
+}
+const pickLocal=()=>{if(window.Android&&typeof Android.pickFile!=='undefined')Android.pickFile();else $('#file').click()};
 function addLocal(name,text){
   const arr=parseM3U(text);
   if(!arr.length){lmsg('Nenhum canal encontrado nesse arquivo.',true);return}
@@ -833,10 +1116,10 @@ function addLocal(name,text){
   sources.push(s);saveSources();rebuild();renderCfg();
   lmsg(arr.length+' canais adicionados de “'+s.name+'”.'+(saved?'':' Atenção: a lista é grande demais para ser salva e será perdida ao reiniciar.'),!saved);
 }
-window.onFilePicked=(name,text)=>addLocal(name,text);
+window.onFilePicked=(name,text)=>handlePicked(name,text);
 $('#file').addEventListener('change',async e=>{
   const f=e.target.files[0];if(!f)return;
-  addLocal(f.name,await f.text());e.target.value='';
+  handlePicked(f.name,await f.text());e.target.value='';
 });
 
 /* toque (celular): toque simples mostra/esconde os controles, duplo toque favorita, deslizar troca de canal */
@@ -855,7 +1138,7 @@ pov.addEventListener('touchend',e=>{
   const dy=e.changedTouches[0].clientY-ty0;
   if(Math.abs(dy)>90&&!menuOpen&&!footMode)zap(dy<0?1:-1);
 },{passive:true});
-applyLogo();
+applyLogo();applyUI();setInterval(slideTick,1000);
 (async()=>{
   /* migra a lista única da versão anterior */
   if(!sources.length){
@@ -872,6 +1155,7 @@ applyLogo();
   }
   render();
   focusEl(main.querySelector('[data-i],[data-f]')||document.querySelector('.rb'));
+  if(epgSources.some(s=>s.on)&&(!epgAt||Date.now()-epgAt>6*3600e3))loadEpg().then(()=>{if(view==='cfg')renderCfg()});
 })();
 </script>
 </body>
