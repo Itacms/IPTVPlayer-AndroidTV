@@ -21,7 +21,7 @@ jobs:
           gradle-version: 8.7
 
       - name: Build debug APK
-        run: gradle assembleDebug
+        run: gradle assembleDebug -PversionCode=${{ github.run_number }}
 
       - uses: actions/upload-artifact@v4
         with:
