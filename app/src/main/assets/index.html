@@ -6,7 +6,7 @@
 <title>Player IPTV</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.13/hls.min.js"></script>
 <style>
-:root{--logo-bg:#17171c;--logo-fg:#cfd3dd;--logo-sh:none;--bg:#0b0b0d;--panel:#1b1b20;--panel2:#26262d;--txt:#fff;--mut:#a7a7b2;--red:#e5262d;--txt2:#dcdce2;--rail:#0c0c0f;--ring:#ffffff;--tabon:#e9e9ec;--tabfg:#111111;--line:#33333b;--glow:#e5262d55;--card-w:17vw;--card-ar:16 / 9}
+:root{--glass-bg:rgba(255,255,255,.12);--ui-opacity:1;--logo-opacity:1;--logo-bg:#17171c;--logo-fg:#cfd3dd;--logo-sh:none;--bg:#0b0b0d;--panel:#1b1b20;--panel2:#26262d;--txt:#fff;--mut:#a7a7b2;--red:#e5262d;--txt2:#dcdce2;--rail:#0c0c0f;--ring:#ffffff;--tabon:#e9e9ec;--tabfg:#111111;--line:#33333b;--glow:#e5262d55;--card-w:17vw;--card-ar:16 / 9}
 *{box-sizing:border-box}
 html,body{height:100%;margin:0;overflow:hidden;background:var(--bg);color:var(--txt);font:1.5vw/1.35 Poppins,Montserrat,Roboto,"Segoe UI",sans-serif}
 button,input{font:inherit;color:inherit}
@@ -145,7 +145,12 @@ body.nfull #app{visibility:hidden}
 .ml img{width:76%;height:76%;object-fit:contain}
 .ml i{font-style:normal;font-weight:800;color:var(--logo-fg);font-size:1.1vw}
 
-#bgimg{position:fixed;inset:0;z-index:-1;display:none}
+#bgimg{position:fixed;inset:0;z-index:-1;display:none;pointer-events:none}
+html.glass-ui .pill,html.glass-ui .tab,html.glass-ui .cat,html.glass-ui .gbar,html.glass-ui .grow .glogo,html.glass-ui .card .th{background:var(--glass-bg)!important;backdrop-filter:blur(16px) saturate(140%);-webkit-backdrop-filter:blur(16px) saturate(140%);border:1px solid #ffffff24}
+html.glass-ui #rail,html.glass-ui #tabs,html.glass-ui .gbar,html.glass-ui .diagbox{background:color-mix(in srgb,var(--panel) calc(var(--ui-opacity)*100%),transparent)!important;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+.th,.hl,.glogo,.plogo,.ml,.gl{background-color:color-mix(in srgb,var(--logo-bg) calc(var(--logo-opacity)*100%),transparent)!important}
+html.noglass .pill,html.noglass .tab,html.noglass .cat,html.noglass .gbar{backdrop-filter:none;-webkit-backdrop-filter:none}
+body.nfull #bgimg{display:none!important}
 .hx .btns{margin-top:2vh}
 .dots{display:flex;gap:.5vw;margin-top:2vh}
 .dots i{width:.8vw;height:.8vw;border-radius:99px;background:var(--mut);opacity:.5;transition:width .25s}
@@ -262,7 +267,7 @@ const THEMES={
 };
 const ACCENTS={red:['Vermelho','#e5262d'],blue:['Azul','#2f80ff'],green:['Verde','#22b765'],purple:['Roxo','#8b5cf6'],orange:['Laranja','#f59e0b'],pink:['Rosa','#ec4899']};
 const SLIDES=[['Desligado',0],['5 segundos',5],['8 segundos',8],['12 segundos',12]];
-const UI_DEF={theme:'dark',accent:'red',bgmode:'theme',bgurl:'',slide:2,previewAudio:1,thumbSize:1,thumbShape:0,thumbName:1,thumbFit:0,logoPri:0,epgIcons:1};
+const UI_DEF={theme:'dark',accent:'red',bgmode:'theme',bgurl:'',bgdata:'',slide:2,previewAudio:1,thumbSize:1,thumbShape:0,thumbName:1,thumbFit:0,logoPri:0,epgIcons:1,glass:0,uiOpacity:100,logoOpacity:100,logoFolder:''};
 let ui=Object.assign({},UI_DEF,store.get('tv_ui',{}));
 const saveUI=()=>store.set('tv_ui',ui);
 function applyUI(){
@@ -272,11 +277,14 @@ function applyUI(){
   s.setProperty('--card-w',['13vw','17vw','21vw'][ui.thumbSize]||'17vw');
   s.setProperty('--card-ar',['16 / 9','4 / 3','1 / 1'][ui.thumbShape]||'16 / 9');
   root.classList.toggle('nonames',!ui.thumbName);
+  root.classList.toggle('glass-ui',!!ui.glass);root.classList.toggle('noglass',!ui.glass);
+  s.setProperty('--ui-opacity',(Number(ui.uiOpacity)||100)/100);s.setProperty('--logo-opacity',(Number(ui.logoOpacity)||100)/100);
+  s.setProperty('--glass-bg','rgba(255,255,255,'+(0.04+((Number(ui.uiOpacity)||100)/100)*0.18)+')');
   root.classList.toggle('tcover',ui.thumbFit===1);
   const bg=document.getElementById('bgimg');
   if(bg){
     const veil=t.light?'rgba(255,255,255,.8)':'rgba(0,0,0,.62)';
-    if(ui.bgmode==='image'&&ui.bgurl){bg.style.background='linear-gradient('+veil+','+veil+'),url("'+ui.bgurl.replace(/"/g,'%22')+'") center/cover no-repeat';bg.style.display='block'}
+    if(ui.bgmode==='image'&&(ui.bgdata||ui.bgurl)){const src=ui.bgdata||ui.bgurl;bg.style.background='linear-gradient('+veil+','+veil+'),url("'+src.replace(/"/g,'%22')+'") center/cover no-repeat';bg.style.display='block'}
     else if(ui.bgmode==='gradient'){bg.style.background='radial-gradient(ellipse at 12% 8%,var(--glow),transparent 55%),linear-gradient(160deg,var(--panel),var(--bg))';bg.style.display='block'}
     else bg.style.display='none';
   }
@@ -285,7 +293,10 @@ function applyUI(){
 const OPTS={
  theme:{label:'Tema',vals:Object.keys(THEMES),name:v=>THEMES[v].n},
  accent:{label:'Cor de destaque',vals:Object.keys(ACCENTS),name:v=>ACCENTS[v][0]},
- bgmode:{label:'Fundo',vals:['theme','gradient','image'],name:v=>({theme:'Do tema',gradient:'Gradiente',image:'Imagem'})[v]},
+ bgmode:{label:'Fundo',vals:['theme','gradient','image'],name:v=>({theme:'Do tema',gradient:'Gradiente',image:'Imagem local/online'})[v]},
+ glass:{label:'Efeito vidro do tema',vals:[0,1],name:v=>v?'Ligado':'Desligado'},
+ uiOpacity:{label:'Opacidade do tema',vals:[100,85,70,55,40],name:v=>v+'%'},
+ logoOpacity:{label:'Opacidade das caixas de logo',vals:[100,85,70,55,40],name:v=>v+'%'},
  previewAudio:{label:'Áudio da prévia',vals:[1,0],name:v=>v?'Ligado':'Desligado'},
  slide:{label:'Slide do destaque',vals:[0,1,2,3],name:v=>SLIDES[v][0]},
  thumbSize:{label:'Tamanho das miniaturas',vals:[0,1,2],name:v=>['Pequeno','Médio','Grande'][v]},
@@ -472,6 +483,7 @@ function resetLogos(){ch.forEach(c=>{c._lc=null})}
 function logoCands(c){
   if(c._lc)return c._lc;
   const ex=[];
+  if(ui.logoFolder&&window.Android&&Android.getLocalLogo){try{const key=slug(c.name);const local=localLogoCache[key]||(localLogoCache[key]=Android.getLocalLogo(key));if(local)ex.unshift(local)}catch(e){}}
   logoSrc.forEach(s=>{
     if(!s.on||!s.tpl)return;
     if(s.tpl.includes('{id}')&&!c.tvid)return;
@@ -578,6 +590,7 @@ function renderSearch(){
   $('#q').addEventListener('input',doSearch);
   doSearch();
 }
+const localLogoCache={};
 const LOGOS=[['Escuro','#17171c','#cfd3dd','none'],['Transparente','transparent','#cfd3dd','none'],['Claro','#f4f4f6','#445','0 2vw 5vw #000a'],['Do tema','var(--panel2)','var(--txt2)','none']];
 function applyLogo(){
   const L=LOGOS[store.get('tv_logo',0)]||LOGOS[0],s=document.documentElement.style;
@@ -616,8 +629,10 @@ function renderCfg(){
   <div class="sub" style="margin-top:1.4vh">No endereço use {slug} (nome do canal em minúsculas, com hífens), {name} (nome do canal) ou {id} (tvg-id da lista).</div>
   <div class="sec">Aparência</div>
   <div class="field">${optBtn('theme')}${optBtn('accent')}${optBtn('bgmode')}</div>
-  <div class="field"><input id="bgurl" type="url" placeholder="Endereço da imagem de fundo (https://…)" value="${esc(ui.bgurl)}"><button class="pill main" data-f id="bgapply">Aplicar imagem</button></div>
-  <div class="field"><button class="pill" data-f id="blogo">Fundo das logos: ${LOGOS[store.get('tv_logo',0)][0]}</button>${optBtn('slide')}</div>
+  <div class="field"><input id="bgurl" type="url" placeholder="Imagem online (https://…)" value="${esc(ui.bgurl)}"><button class="pill main" data-f id="bgapply">Aplicar online</button><button class="pill" data-f id="bgbrowse">Escolher imagem local</button></div>
+  <div class="field"><button class="pill" data-f id="blogo">Fundo das logos: ${LOGOS[store.get('tv_logo',0)][0]}</button>${optBtn('glass')}${optBtn('uiOpacity')}</div>
+  <div class="field">${optBtn('logoOpacity')}<button class="pill" data-f id="blogofolder">Selecionar pasta local de logos</button><button class="pill" data-f id="blogoonline">Configurar fonte online abaixo</button></div>
+  <div class="sub">Pasta de logos: ${esc(ui.logoFolder?'selecionada':'não selecionada')}. A fonte online usa o modelo {slug}, {name} ou {id}.</div>
   <div class="sec">Miniaturas</div>
   <div class="field">${optBtn('thumbSize')}${optBtn('thumbShape')}${optBtn('thumbName')}</div>
   <div class="field">${optBtn('thumbFit')}${optBtn('logoPri')}${optBtn('epgIcons')}</div>
@@ -888,6 +903,8 @@ v.addEventListener('pause',()=>{if(!isNative)setPlayLabel(true)});
 /* eventos do ExoPlayer (vindos do Android) */
 window.onNative=msg=>{
   const k=msg.split(':')[0],d=msg.slice(k.length+1);
+  if(k==='background'){toast('Não foi possível carregar a imagem. Tente uma imagem menor.');return}
+  if(k==='logofolder'){toast('Não foi possível selecionar a pasta de logos.');return}
   if(k==='nofilemanager'){lmsg('Esta TV não tem gerenciador de arquivos. Instale um (ex.: X-plore) ou use o endereço da lista.',true);return}
   if(k==='filepick'){lmsg('Não foi possível ler o arquivo escolhido.',true);return}
   if(k==='backup'){
@@ -1077,7 +1094,10 @@ document.addEventListener('click',e=>{
     if(k==='logoPri'||k==='epgIcons')resetLogos();
     t.textContent=o.label+': '+o.name(ui[k]);return;
   }
-  if(t.id==='bgapply'){ui.bgurl=$('#bgurl').value.trim();if(ui.bgurl)ui.bgmode='image';saveUI();applyUI();renderCfg();focusEl($('#bgapply'));return}
+  if(t.id==='bgapply'){ui.bgurl=$('#bgurl').value.trim();ui.bgdata='';if(ui.bgurl)ui.bgmode='image';saveUI();applyUI();renderCfg();focusEl($('#bgapply'));return}
+  if(t.id==='bgbrowse'){try{Android.pickBackground()}catch(e){toast('Seletor local indisponível neste aparelho')}return}
+  if(t.id==='blogofolder'){try{Android.pickLogoFolder()}catch(e){toast('Seletor de pasta indisponível neste aparelho')}return}
+  if(t.id==='blogoonline'){focusEl($('#ltpl'));toast('Informe o endereço do servidor de logos abaixo');return}
   if(t.id==='bbackup'){doBackup();return}
   if(t.id==='brestore'){pickLocal();return}
   if(t.id==='badde'){
@@ -1194,6 +1214,8 @@ function addLocal(name,text){
   sources.push(s);saveSources();rebuild();renderCfg();
   lmsg(arr.length+' canais adicionados de “'+s.name+'”.'+(saved?'':' Atenção: a lista é grande demais para ser salva e será perdida ao reiniciar.'),!saved);
 }
+window.onBackgroundPicked=(name,data)=>{ui.bgdata=data;ui.bgurl='';ui.bgmode='image';saveUI();applyUI();renderCfg();toast('Fundo local aplicado: '+name)};
+window.onLogoFolderPicked=(uri,name)=>{ui.logoFolder=uri;for(const k in localLogoCache)delete localLogoCache[k];saveUI();renderCfg();toast('Pasta local de logos selecionada')};
 window.onFilePicked=(name,text)=>handlePicked(name,text);
 $('#file').addEventListener('change',async e=>{
   const f=e.target.files[0];if(!f)return;

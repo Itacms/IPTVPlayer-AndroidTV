@@ -13,3 +13,11 @@ com player nativo Media3/ExoPlayer por baixo e HLS.js/HTML5 como alternativa.
 
 Compilação: GitHub Actions (.github/workflows/build.yml) gera o APK em Actions > Artifacts.
 Este código-fonte ainda não foi compilado pelo autor: confirme o resultado do build antes de instalar.
+
+## Alterações de aparência (versão personalizada)
+- Imagem de fundo por URL ou seleção de imagem local no Android.
+- O fundo decorativo é ocultado durante a reprodução em tela cheia para evitar cobrir o vídeo nativo.
+- Tema com efeito de vidro, ajuste de opacidade do tema e das caixas de logos.
+- Seleção de pasta local de logos (arquivos de imagem diretamente na pasta, com nome correspondente ao slug do canal) e fontes de logos online por modelo `{slug}`, `{name}` ou `{id}`.
+
+Para gerar o APK: envie o projeto para um repositório GitHub e execute Actions > Build APK. O APK é gerado como artefato `IPTVPlayer-APK`. Esta edição foi validada quanto à sintaxe JavaScript e ao XML do Manifest, mas ainda precisa de compilação Android e teste de reprodução num dispositivo real.

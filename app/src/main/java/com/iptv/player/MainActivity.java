@@ -10,6 +10,8 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.OpenableColumns;
+import android.provider.DocumentsContract;
+import android.util.Base64;
 import android.view.Gravity;
 import android.view.TextureView;
 import android.view.View;
@@ -49,6 +51,8 @@ import java.io.InputStream;
 public class MainActivity extends Activity {
     private static final int REQ_PICK = 77;
     private static final int REQ_SAVE = 78;
+    private static final int REQ_BACKGROUND = 79;
+    private static final int REQ_LOGO_FOLDER = 80;
 
     private FrameLayout root;
     private FrameLayout videoHost;
@@ -190,6 +194,62 @@ public class MainActivity extends Activity {
                     }
                 }
             });
+        }
+
+        // ---- Imagem de fundo local ----
+        @JavascriptInterface
+        public void pickBackground() {
+            runOnUiThread(new Runnable() { @Override public void run() {
+                try {
+                    Intent i = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+                    i.addCategory(Intent.CATEGORY_OPENABLE);
+                    i.setType("image/*");
+                    startActivityForResult(i, REQ_BACKGROUND);
+                } catch (Exception e) { js("background:error"); }
+            }});
+        }
+
+        // ---- Pasta local de logos ----
+        @JavascriptInterface
+        public void pickLogoFolder() {
+            runOnUiThread(new Runnable() { @Override public void run() {
+                try {
+                    Intent i = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
+                    startActivityForResult(i, REQ_LOGO_FOLDER);
+                } catch (Exception e) { js("logofolder:error"); }
+            }});
+        }
+
+        @JavascriptInterface
+        public String getLocalLogo(String channelSlug) {
+            try {
+                String tree = prefs.getString("logo_tree", "");
+                if (tree.isEmpty() || channelSlug == null || channelSlug.isEmpty()) return "";
+                Uri treeUri = Uri.parse(tree);
+                String docId = DocumentsContract.getTreeDocumentId(treeUri);
+                Uri children = DocumentsContract.buildChildDocumentsUriUsingTree(treeUri, docId);
+                Cursor c = getContentResolver().query(children, new String[]{DocumentsContract.Document.COLUMN_DOCUMENT_ID, DocumentsContract.Document.COLUMN_DISPLAY_NAME, DocumentsContract.Document.COLUMN_MIME_TYPE}, null, null, null);
+                if (c == null) return "";
+                Uri match = null;
+                while (c.moveToNext()) {
+                    String name = c.getString(1);
+                    String mime = c.getString(2);
+                    if (name == null || mime == null || !mime.startsWith("image/")) continue;
+                    String base = name.replaceFirst("(?i)\\.(png|jpe?g|webp|gif|svg)$", "").toLowerCase(java.util.Locale.ROOT).replaceAll("[^a-z0-9]+", "-").replaceAll("^-|-$", "");
+                    if (base.equals(channelSlug.toLowerCase(java.util.Locale.ROOT))) {
+                        match = DocumentsContract.buildDocumentUriUsingTree(treeUri, c.getString(0)); break;
+                    }
+                }
+                c.close();
+                if (match == null) return "";
+                InputStream in = getContentResolver().openInputStream(match);
+                if (in == null) return "";
+                ByteArrayOutputStream out = new ByteArrayOutputStream(); byte[] buf = new byte[8192]; int n; int total = 0;
+                while ((n = in.read(buf)) > 0) { total += n; if (total > 2 * 1024 * 1024) { in.close(); return ""; } out.write(buf, 0, n); }
+                in.close();
+                String type = getContentResolver().getType(match); if (type == null) type = "image/png";
+                return "data:" + type + ";base64," + Base64.encodeToString(out.toByteArray(), Base64.NO_WRAP);
+            } catch (Exception e) { return ""; }
         }
 
         // ---- Listas locais ----
@@ -478,6 +538,33 @@ public class MainActivity extends Activity {
             } catch (Exception e) {
                 saveBackupFallback();
             }
+            return;
+        }
+        if (requestCode == REQ_BACKGROUND) {
+            if (resultCode != RESULT_OK || data == null || data.getData() == null) return;
+            final Uri imageUri = data.getData();
+            new Thread(new Runnable() { @Override public void run() {
+                try {
+                    InputStream in = getContentResolver().openInputStream(imageUri);
+                    if (in == null) throw new Exception("empty image");
+                    ByteArrayOutputStream out = new ByteArrayOutputStream(); byte[] buf = new byte[8192]; int n; int total = 0;
+                    while ((n = in.read(buf)) > 0) { total += n; if (total > 2 * 1024 * 1024) throw new Exception("image too large"); out.write(buf, 0, n); }
+                    in.close(); String type = getContentResolver().getType(imageUri); if (type == null) type = "image/jpeg";
+                    Cursor c = getContentResolver().query(imageUri, null, null, null, null); String name = "Imagem local";
+                    if (c != null) { try { int ix = c.getColumnIndex(OpenableColumns.DISPLAY_NAME); if (ix >= 0 && c.moveToFirst()) name = c.getString(ix); } finally { c.close(); } }
+                    final String fn = name, uriData = "data:" + type + ";base64," + Base64.encodeToString(out.toByteArray(), Base64.NO_WRAP);
+                    runOnUiThread(new Runnable() { @Override public void run() { web.evaluateJavascript("window.onBackgroundPicked&&onBackgroundPicked(" + JSONObject.quote(fn) + "," + JSONObject.quote(uriData) + ")", null); }});
+                } catch (Exception e) { js("background:error"); }
+            }});
+            return;
+        }
+        if (requestCode == REQ_LOGO_FOLDER) {
+            if (resultCode != RESULT_OK || data == null || data.getData() == null) return;
+            Uri tree = data.getData();
+            try { getContentResolver().takePersistableUriPermission(tree, Intent.FLAG_GRANT_READ_URI_PERMISSION); } catch (Exception ignored) {}
+            prefs.edit().putString("logo_tree", tree.toString()).apply();
+            final String u = tree.toString();
+            runOnUiThread(new Runnable() { @Override public void run() { web.evaluateJavascript("window.onLogoFolderPicked&&onLogoFolderPicked(" + JSONObject.quote(u) + "," + JSONObject.quote("pasta local") + ")", null); }});
             return;
         }
         if (requestCode != REQ_PICK || resultCode != RESULT_OK || data == null || data.getData() == null) return;
