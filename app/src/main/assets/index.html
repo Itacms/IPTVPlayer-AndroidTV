@@ -64,7 +64,7 @@ svg{display:block;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:
 .diagbox:empty{display:none}
 html.droid,html.droid body{background:transparent}
 body.nfull #app{visibility:hidden}
-#pfade{display:none;position:fixed;z-index:0;top:var(--mt,11vh);right:0;width:var(--mw,56vw);height:var(--mh,36vh);background:linear-gradient(90deg,var(--bg),transparent 16%);pointer-events:none}
+#pfade{display:none;position:fixed;z-index:0;top:var(--mt,3vh);right:2vw;width:var(--mw,60vw);height:var(--mh,44vh);background:linear-gradient(90deg,var(--bg),transparent 16%);pointer-events:none}
 #pfade.on{display:block}
 .sec{margin:3.4vh 3vw 0;font-size:1.7vw;font-weight:700}
 .title{font-size:2.6vw;font-weight:800;margin:1vh 3vw 0}
@@ -96,7 +96,7 @@ body.nfull #app{visibility:hidden}
 
 /* vídeo */
 #v{display:none;background:#000}
-#v.mini{display:block;position:fixed;z-index:0;top:var(--mt,11vh);right:0;width:var(--mw,56vw);height:var(--mh,36vh);object-fit:contain;
+#v.mini{display:block;position:fixed;z-index:0;top:var(--mt,3vh);right:2vw;width:var(--mw,60vw);height:var(--mh,44vh);object-fit:contain;
   -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 16%);mask-image:linear-gradient(90deg,transparent 0,#000 16%)}
 #v.full{display:block;position:fixed;z-index:8;inset:0;width:100%;height:100%;object-fit:contain}
 #pov{position:fixed;inset:0;z-index:9;display:none;color:#fff}
@@ -278,8 +278,9 @@ function applyUI(){
   s.setProperty('--card-ar',['16 / 9','4 / 3','1 / 1'][ui.thumbShape]||'16 / 9');
   root.classList.toggle('nonames',!ui.thumbName);
   root.classList.toggle('glass-ui',!!ui.glass);root.classList.toggle('noglass',!ui.glass);
-  s.setProperty('--ui-opacity',(Number(ui.uiOpacity)||100)/100);s.setProperty('--logo-opacity',(Number(ui.logoOpacity)||100)/100);
-  s.setProperty('--glass-bg','rgba(255,255,255,'+(0.04+((Number(ui.uiOpacity)||100)/100)*0.18)+')');
+  const uiOpacity=Number(ui.uiOpacity??100),logoOpacity=Number(ui.logoOpacity??100);
+  s.setProperty('--ui-opacity',uiOpacity/100);s.setProperty('--logo-opacity',logoOpacity/100);
+  s.setProperty('--glass-bg','rgba(255,255,255,'+(0.04+(uiOpacity/100)*0.18)+')');
   root.classList.toggle('tcover',ui.thumbFit===1);
   const bg=document.getElementById('bgimg');
   if(bg){
@@ -295,8 +296,9 @@ const OPTS={
  accent:{label:'Cor de destaque',vals:Object.keys(ACCENTS),name:v=>ACCENTS[v][0]},
  bgmode:{label:'Fundo',vals:['theme','gradient','image'],name:v=>({theme:'Do tema',gradient:'Gradiente',image:'Imagem local/online'})[v]},
  glass:{label:'Efeito vidro do tema',vals:[0,1],name:v=>v?'Ligado':'Desligado'},
- uiOpacity:{label:'Opacidade do tema',vals:[100,85,70,55,40],name:v=>v+'%'},
- logoOpacity:{label:'Opacidade das caixas de logo',vals:[100,85,70,55,40],name:v=>v+'%'},
+ uiOpacity:{label:'Opacidade do tema',vals:Array.from({length:21},(_,i)=>100-i*5),name:v=>v+'%'},
+  
+ logoOpacity:{label:'Opacidade das caixas de logo',vals:Array.from({length:21},(_,i)=>100-i*5),name:v=>v+'%'}, 
  previewAudio:{label:'Áudio da prévia',vals:[1,0],name:v=>v?'Ligado':'Desligado'},
  slide:{label:'Slide do destaque',vals:[0,1,2,3],name:v=>SLIDES[v][0]},
  thumbSize:{label:'Tamanho das miniaturas',vals:[0,1,2],name:v=>['Pequeno','Médio','Grande'][v]},
@@ -737,8 +739,8 @@ if(playerMode==='exo'&&!nativeAvail)playerMode='auto';
 const MODES=[['auto','Automático'],['exo','ExoPlayer (Media3)'],['hls','HLS.js'],['native','HTML5 nativo']];
 const modeLabel=()=>(MODES.find(m=>m[0]===playerMode)||MODES[0])[1];
 /* prévia: sempre 16:9, ~46% da altura da tela (nunca mais que 60% da largura) */
-function miniSize(){const W=innerWidth,H=innerHeight,top=H*0.11,hp=H*0.36,wp=Math.min(hp*16/9,W*0.6);return [wp,hp,W,H,top]}
-function miniRect(){const [wp,hp,W,H,top]=miniSize();return [1-wp/W,top/H,1,(top+hp)/H]}
+function miniSize(){const W=innerWidth,H=innerHeight,top=H*0.03,hp=H*0.44,wp=Math.min(hp*16/9,W*0.6);return [wp,hp,W,H,top]}
+function miniRect(){const [wp,hp,W,H,top]=miniSize();return [Math.max(0,(W-wp-W*0.02)/W),top/H,1-W*0.02/W,(top+hp)/H]}
 function layoutMini(){const [wp,hp,,,top]=miniSize(),s=document.documentElement.style;s.setProperty('--mw',wp+'px');s.setProperty('--mh',hp+'px');s.setProperty('--mt',top+'px')}
 layoutMini();addEventListener('resize',()=>{layoutMini();syncVideo()});
 let isNative=false,nPaused=false,curEngine='web',chkT=0,stickyMsg=false,tried={};
