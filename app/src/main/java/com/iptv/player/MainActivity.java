@@ -37,6 +37,9 @@ import androidx.media3.exoplayer.source.DefaultMediaSourceFactory;
 import androidx.media3.exoplayer.source.MediaSource;
 
 import org.json.JSONObject;
+import org.json.JSONArray;
+import java.util.ArrayList;
+import java.util.List;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -56,7 +59,9 @@ public class MainActivity extends Activity {
 
     private FrameLayout root;
     private FrameLayout videoHost;
+    private FrameLayout multiHost;
     private TextureView texture;
+    private final List<MultiTile> multiTiles = new ArrayList<>();
     private WebView web;
     private SharedPreferences prefs;
 
@@ -148,6 +153,14 @@ public class MainActivity extends Activity {
             });
         }
 
+        @JavascriptInterface
+        public void nMultiStart(final String payload) { runOnUiThread(new Runnable() { @Override public void run() { startMultiNative(payload); }}); }
+        @JavascriptInterface
+        public void nMultiRect(final int index, final float l, final float t, final float r, final float b) { runOnUiThread(new Runnable() { @Override public void run() { applyMultiRect(index,l,t,r,b); }}); }
+        @JavascriptInterface
+        public void nMultiAudio(final int index) { runOnUiThread(new Runnable() { @Override public void run() { setMultiAudio(index); }}); }
+        @JavascriptInterface
+        public void nMultiStop() { runOnUiThread(new Runnable() { @Override public void run() { stopMultiNative(); }}); }
         @JavascriptInterface
         public void nFit(final int mode) {
             runOnUiThread(new Runnable() {
@@ -326,6 +339,9 @@ public class MainActivity extends Activity {
                 FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT, Gravity.CENTER));
         root.addView(videoHost, new FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
+        multiHost = new FrameLayout(this);
+        multiHost.setVisibility(View.GONE);
+        root.addView(multiHost, new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
 
         web = new WebView(this);
         web.setBackgroundColor(Color.TRANSPARENT);
@@ -434,7 +450,44 @@ public class MainActivity extends Activity {
         });
     }
 
+
+    private static final class MultiTile {
+        final FrameLayout host; final TextureView texture; final ExoPlayer player;
+        MultiTile(FrameLayout h, TextureView t, ExoPlayer p) { host=h; texture=t; player=p; }
+    }
+    private void startMultiNative(String payload) {
+        stopMultiNative();
+        try {
+            JSONArray arr=new JSONArray(payload);
+            for(int i=0;i<Math.min(4,arr.length());i++) {
+                JSONObject item=arr.getJSONObject(i); String url=item.optString("url","");
+                if(url.isEmpty()) continue;
+                FrameLayout th=new FrameLayout(this); TextureView tv=new TextureView(this);
+                th.addView(tv,new FrameLayout.LayoutParams(-1,-1,Gravity.CENTER)); multiHost.addView(th);
+                DefaultRenderersFactory rf=new DefaultRenderersFactory(this).setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON).setEnableDecoderFallback(true);
+                ExoPlayer p=new ExoPlayer.Builder(this,rf).build(); p.setVideoTextureView(tv); p.setVolume(i==0?1f:0f);
+                String ua=prefs.getString("ua","");
+                if(ua.isEmpty()) ua="IPTVPlayer/1.0 (Linux; Android "+Build.VERSION.RELEASE+") ExoPlayer";
+                DefaultHttpDataSource.Factory f=new DefaultHttpDataSource.Factory().setUserAgent(ua).setAllowCrossProtocolRedirects(true).setConnectTimeoutMs(15000).setReadTimeoutMs(20000);
+                MediaSource ms=new DefaultMediaSourceFactory(this).setDataSourceFactory(f).createMediaSource(new MediaItem.Builder().setUri(url).build());
+                p.setMediaSource(ms); p.prepare(); p.setPlayWhenReady(true);
+                multiTiles.add(new MultiTile(th,tv,p));
+                applyMultiRect(multiTiles.size()-1,(float)item.optDouble("l",0),(float)item.optDouble("t",0),(float)item.optDouble("r",.5),(float)item.optDouble("b",.5));
+            }
+            if(player!=null){player.setVolume(0f);player.pause();}
+            videoHost.setVisibility(View.GONE); multiHost.setVisibility(multiTiles.isEmpty()?View.GONE:View.VISIBLE);
+        } catch(Exception e){stopMultiNative();js("multiview:error");}
+    }
+    private void applyMultiRect(int i,float l,float t,float r,float b) {
+        if(i<0||i>=multiTiles.size())return; int w=root.getWidth(),h=root.getHeight(); if(w<=0||h<=0)return;
+        FrameLayout.LayoutParams lp=new FrameLayout.LayoutParams(Math.max(1,Math.round((r-l)*w)),Math.max(1,Math.round((b-t)*h)));
+        lp.leftMargin=Math.round(l*w);lp.topMargin=Math.round(t*h);multiTiles.get(i).host.setLayoutParams(lp);
+    }
+    private void setMultiAudio(int index){if(index<0||index>=multiTiles.size())return;for(int i=0;i<multiTiles.size();i++)multiTiles.get(i).player.setVolume(i==index?1f:0f);}
+    private void stopMultiNative(){for(MultiTile t:multiTiles){t.player.stop();t.player.release();multiHost.removeView(t.host);}multiTiles.clear();if(multiHost!=null)multiHost.setVisibility(View.GONE);}
+
     private void startNative(String url) {
+        stopMultiNative();
         curUrl = url;
         retriedHls = false;
         ensurePlayer();
@@ -652,6 +705,7 @@ public class MainActivity extends Activity {
 
     @Override
     protected void onDestroy() {
+        stopMultiNative();
         if (player != null) {
             player.release();
             player = null;
