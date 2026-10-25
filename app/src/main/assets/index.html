@@ -64,7 +64,7 @@ svg{display:block;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:
 .diagbox:empty{display:none}
 html.droid,html.droid body{background:transparent}
 body.nfull #app{visibility:hidden}
-#pfade{display:none;position:fixed;z-index:0;top:0;right:0;width:var(--mw,56vw);height:var(--mh,36vh);background:linear-gradient(90deg,var(--bg),transparent 16%);pointer-events:none}
+#pfade{display:none;position:fixed;z-index:0;top:var(--mt,11vh);right:0;width:var(--mw,56vw);height:var(--mh,36vh);background:linear-gradient(90deg,var(--bg),transparent 16%);pointer-events:none}
 #pfade.on{display:block}
 .sec{margin:3.4vh 3vw 0;font-size:1.7vw;font-weight:700}
 .title{font-size:2.6vw;font-weight:800;margin:1vh 3vw 0}
@@ -96,7 +96,7 @@ body.nfull #app{visibility:hidden}
 
 /* vídeo */
 #v{display:none;background:#000}
-#v.mini{display:block;position:fixed;z-index:0;top:0;right:0;width:var(--mw,56vw);height:var(--mh,36vh);object-fit:contain;
+#v.mini{display:block;position:fixed;z-index:0;top:var(--mt,11vh);right:0;width:var(--mw,56vw);height:var(--mh,36vh);object-fit:contain;
   -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 16%);mask-image:linear-gradient(90deg,transparent 0,#000 16%)}
 #v.full{display:block;position:fixed;z-index:8;inset:0;width:100%;height:100%;object-fit:contain}
 #pov{position:fixed;inset:0;z-index:9;display:none;color:#fff}
@@ -737,9 +737,9 @@ if(playerMode==='exo'&&!nativeAvail)playerMode='auto';
 const MODES=[['auto','Automático'],['exo','ExoPlayer (Media3)'],['hls','HLS.js'],['native','HTML5 nativo']];
 const modeLabel=()=>(MODES.find(m=>m[0]===playerMode)||MODES[0])[1];
 /* prévia: sempre 16:9, ~46% da altura da tela (nunca mais que 60% da largura) */
-function miniSize(){const W=innerWidth,H=innerHeight,hp=H*0.46,wp=Math.min(hp*16/9,W*0.6);return [wp,hp,W,H]}
-function miniRect(){const [wp,hp,W,H]=miniSize();return [1-wp/W,0,1,hp/H]}
-function layoutMini(){const [wp,hp]=miniSize(),s=document.documentElement.style;s.setProperty('--mw',wp+'px');s.setProperty('--mh',hp+'px')}
+function miniSize(){const W=innerWidth,H=innerHeight,top=H*0.11,hp=H*0.36,wp=Math.min(hp*16/9,W*0.6);return [wp,hp,W,H,top]}
+function miniRect(){const [wp,hp,W,H,top]=miniSize();return [1-wp/W,top/H,1,(top+hp)/H]}
+function layoutMini(){const [wp,hp,,,top]=miniSize(),s=document.documentElement.style;s.setProperty('--mw',wp+'px');s.setProperty('--mh',hp+'px');s.setProperty('--mt',top+'px')}
 layoutMini();addEventListener('resize',()=>{layoutMini();syncVideo()});
 let isNative=false,nPaused=false,curEngine='web',chkT=0,stickyMsg=false,tried={};
 const engMemo=store.get('tv_engmemo',{});
@@ -1253,9 +1253,16 @@ applyLogo();applyUI();setInterval(slideTick,1000);
     await Promise.all(sources.filter(s=>s.on).map(loadSource));
     saveSources();rebuild();
   }
+  // Atualiza as fontes de logo em memória e renderiza a lista recém-baixada.
+  resetLogos();
   render();
   focusEl(main.querySelector('[data-i],[data-f]')||document.querySelector('.rb'));
-  if(epgSources.some(s=>s.on)&&(!epgAt||Date.now()-epgAt>6*3600e3))loadEpg().then(()=>{if(view==='cfg')renderCfg()});
+  // Reconsulta o EPG ao iniciar, em vez de depender apenas do cache de 6 horas.
+  if(epgSources.some(s=>s.on&&s.url))loadEpg().then(()=>{
+    resetLogos();
+    render();
+    focusEl(main.querySelector('[data-i],[data-f]')||document.querySelector('.rb'));
+  });
 })();
 </script>
 </body>
