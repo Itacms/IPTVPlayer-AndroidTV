@@ -28,8 +28,8 @@ svg{display:block;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:
 .rb:focus{background:var(--ring);color:var(--bg)}
 
 #content{flex:1;min-width:0;display:flex;flex-direction:column}
-#tabs{display:flex;gap:.6vw;padding:2.6vh 3vw 0;height:11vh;align-items:flex-start}
-.tab{font-size:2vw;font-weight:600;padding:.4vw 1.6vw;border-radius:99px;color:var(--txt)}
+#tabs{display:flex;gap:.5vw;padding:1.4vh 2.6vw 0;height:8vh;align-items:flex-start}
+.tab{font-size:1.65vw;font-weight:600;padding:.3vw 1.25vw;border-radius:99px;color:var(--txt)}
 .tab.on{background:var(--tabon);color:var(--tabfg)}
 #main{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden}
 #main::-webkit-scrollbar{display:none}
@@ -64,7 +64,7 @@ svg{display:block;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:
 .diagbox:empty{display:none}
 html.droid,html.droid body{background:transparent}
 body.nfull #app{visibility:hidden}
-#pfade{display:none;position:fixed;z-index:0;top:var(--mt,3vh);right:2vw;width:var(--mw,60vw);height:var(--mh,44vh);background:linear-gradient(90deg,var(--bg),transparent 16%);pointer-events:none}
+#pfade{display:none;position:fixed;z-index:0;top:var(--mt,8vh);right:2vw;width:var(--mw,48vw);height:var(--mh,32vh);background:linear-gradient(90deg,var(--bg),transparent 16%);pointer-events:none}
 #pfade.on{display:block}
 .sec{margin:3.4vh 3vw 0;font-size:1.7vw;font-weight:700}
 .title{font-size:2.6vw;font-weight:800;margin:1vh 3vw 0}
@@ -73,30 +73,30 @@ body.nfull #app{visibility:hidden}
 
 /* ao vivo */
 .live{position:relative;height:100%}
-.lhead{position:absolute;left:3vw;top:1vh;width:42vw}
+.lhead{position:absolute;left:2.6vw;top:.5vh;width:39vw}
 .lm{font-size:1.4vw;font-weight:600;color:var(--txt2);display:flex;align-items:center;gap:.8vw}
-.lhead h1{font-size:3.2vw;line-height:1.1;font-weight:800;margin:.6vh 0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.lhead p{margin:0;font-size:1.35vw;color:var(--txt2);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
-.lbody{position:absolute;left:0;right:0;top:48vh;bottom:0;display:flex;gap:1.4vw;padding:0 2vw 0 2.4vw}
+.lhead h1{font-size:2.45vw;line-height:1.08;font-weight:750;margin:.35vh 0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.lhead p{margin:0;font-size:1.05vw;line-height:1.2;color:var(--txt2);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.lbody{position:absolute;left:0;right:0;top:42vh;bottom:0;display:flex;gap:1.1vw;padding:0 2vw 0 2.4vw}
 .cats{width:19vw;flex:none;overflow-y:auto;padding:.6vh .5vw}
 .cats::-webkit-scrollbar,.guide::-webkit-scrollbar{display:none}
-.cat{display:block;width:100%;padding:1.1vh 1.1vw;border-radius:.7vw;margin-bottom:.8vh;color:var(--mut);font-size:1.45vw;font-weight:600}
-.cat small{display:block;font-size:1vw;font-weight:400;color:var(--mut)}
+.cat{display:block;width:100%;padding:.8vh .9vw;border-radius:.7vw;margin-bottom:.55vh;color:var(--mut);font-size:1.2vw;font-weight:600}
+.cat small{display:block;font-size:.85vw;font-weight:400;color:var(--mut)}
 .cat.on{background:var(--panel);color:var(--txt)}
 .guide{flex:1;overflow-y:auto;padding:.6vh .5vw}
-.grow{display:flex;gap:.7vw;width:100%;height:7.2vh;margin-bottom:.8vh;border-radius:.5vw}
-.glogo{width:9vw;flex:none;background:var(--logo-bg);border-radius:.5vw;display:grid;place-items:center;overflow:hidden}
+.grow{display:flex;gap:.6vw;width:100%;height:6.2vh;margin-bottom:.55vh;border-radius:.5vw}
+.glogo{width:7.5vw;flex:none;background:var(--logo-bg);border-radius:.5vw;display:grid;place-items:center;overflow:hidden}
 .glogo img{max-width:72%;max-height:72%;object-fit:contain}
-.glogo i{font-size:1.6vw;color:var(--logo-fg)}
-.gbar{flex:1;min-width:0;background:var(--panel);border-radius:.5vw;display:flex;align-items:center;gap:1.4vw;padding:0 1.4vw;position:relative;overflow:hidden}
-.gbar b{font-weight:500;font-size:1.45vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:46%;flex:none}
-.gbar small{color:var(--mut);font-size:1.1vw;white-space:nowrap;margin-left:auto}
+.glogo i{font-size:1.25vw;color:var(--logo-fg)}
+.gbar{flex:1;min-width:0;background:var(--panel);border-radius:.5vw;display:flex;align-items:center;gap:1vw;padding:0 1vw;position:relative;overflow:hidden}
+.gbar b{font-weight:500;font-size:1.12vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:40%;flex:none}
+.gbar small{color:var(--mut);font-size:.9vw;white-space:nowrap;margin-left:auto}
 .gbar::after{content:"";position:absolute;left:0;bottom:0;height:.5vh;width:var(--p,40%);background:var(--red)}
 .grow:focus .gbar,.grow:focus .glogo{background:var(--panel2)}
 
 /* vídeo */
 #v{display:none;background:#000}
-#v.mini{display:block;position:fixed;z-index:0;top:var(--mt,3vh);right:2vw;width:var(--mw,60vw);height:var(--mh,44vh);object-fit:contain;
+#v.mini{display:block;position:fixed;z-index:0;top:var(--mt,8vh);right:2vw;width:var(--mw,48vw);height:var(--mh,32vh);object-fit:contain;
   -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 16%);mask-image:linear-gradient(90deg,transparent 0,#000 16%)}
 #v.full{display:block;position:fixed;z-index:8;inset:0;width:100%;height:100%;object-fit:contain}
 #pov{position:fixed;inset:0;z-index:9;display:none;color:#fff}
@@ -159,8 +159,8 @@ body.nfull #bgimg{display:none!important}
 .hero.swap .hx,.hero.swap .hl{animation:heroIn .55s}
 html.nonames .card b{display:none}
 html.tcover .th img{width:100%;height:100%;object-fit:cover}
-.gbar .ep{font-style:normal;color:var(--txt2);font-size:1.2vw;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.pe{font-size:1.25vw;color:#e4e4ea;margin-top:.4vh;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gbar .ep{font-style:normal;color:var(--txt2);font-size:.95vw;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pe{font-size:1vw;color:#e4e4ea;margin-top:.3vh;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
 /* guia de programação */
 .guide{position:relative;height:100%}
@@ -215,6 +215,7 @@ input:focus{border-color:var(--ring)}
       <button class="tab" data-f data-v="live">Ao Vivo</button>
       <button class="tab" data-f data-v="guide">Guia</button>
       <button class="tab" data-f data-v="favs">Favoritos</button>
+      <button class="tab" data-f data-v="multi">Multi Views</button>
     </header>
     <div id="main"></div>
   </div>
@@ -256,6 +257,7 @@ const store={get(k,d){try{const x=localStorage.getItem(k);return x?JSON.parse(x)
 let ch=[], favs=new Set(store.get('tv_favs',[])), recent=store.get('tv_recent',[]);
 let view='home', rows=[], ctx=[], cur=-1, loaded=-1, mode='off', hls=null, cat='Recentes', tmr=0, itmr=0, lastFocus=-1;
 const HEART='<svg viewBox="0 0 24 24"><path d="M12 21s-8-5.4-8-11a4.5 4.5 0 018-2.8A4.5 4.5 0 0120 10c0 5.6-8 11-8 11z"/></svg>';
+let multiUrls=new Set(store.get('tv_multiview',[]));
 
 /* ---------- lista M3U ---------- */
 /* ---------- temas, miniaturas, slide e fundo ---------- */
@@ -539,7 +541,7 @@ function gridHTML(idx){
 function render(){
   rows=[];main.className=view;
   document.querySelectorAll('[data-v]').forEach(b=>b.classList.toggle('on',b.dataset.v===view));
-  ({home:renderHome,live:renderLive,guide:renderGuide,favs:renderFavs,search:renderSearch,cfg:renderCfg})[view]();
+  ({home:renderHome,live:renderLive,guide:renderGuide,favs:renderFavs,multi:renderMulti,search:renderSearch,cfg:renderCfg})[view]();
 }
 let heroIdx=-1,lastHeroAt=Date.now(),slideList=[];
 function heroSet(i,anim){
@@ -573,6 +575,15 @@ function renderHome(){
   main.innerHTML=`<div class="hero"><div class="hx"><div class="hm" id="hm"></div><h1 id="ht"></h1><p id="hd"></p><div class="btns"><button class="pill main" data-f id="hplay">Assistir</button></div><div class="dots" id="hdots">${slideList.map(()=>'<i></i>').join('')}</div></div><div class="hl" id="hl"></div></div>`+
     cats().filter(c=>c.idx.length).map(c=>rowHTML(c.k==='Recentes'?'Assistidos recentemente':c.k,c.idx)).join('');
   heroSet(fi);
+}
+function renderMulti(){
+  if(!ch.length){main.innerHTML='<div class="title">Multi Views</div><div class="empty">Carregue uma lista M3U nas Configurações primeiro.</div><div class="field"><button class="pill main" data-f data-v="cfg">Abrir Configurações</button></div>';return}
+  const picked=ch.map((c,i)=>({c,i})).filter(x=>multiUrls.has(x.c.url));
+  const pool=ch.map((c,i)=>({c,i})).slice(0,500);
+  main.innerHTML=`<div class="title">Multi Views</div>
+    <div class="sub">Marque os canais que deseja incluir na sequência de zapping. O áudio será do canal que estiver em reprodução.</div>
+    <div class="field" style="margin-top:1.2vh"><button class="pill main" data-f id="mvstart" ${picked.length?'':'disabled'}>Zapear selecionados (${picked.length})</button><button class="pill" data-f id="mvclear">Limpar seleção</button></div>
+    <div class="grid" id="mvgrid">${pool.map(({c,i})=>{const on=multiUrls.has(c.url),e=epgNow(c);return `<button class="card ${on?'fav':''}" data-f data-mv="${i}"><span class="th">${logoHTML(c)}</span><b>${on?'☑ ':'☐ '}${esc(clean(c.name))}</b><small style="display:block;color:var(--mut);font-size:.9vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(e?epgLine(c):c.cat||'Canal de TV')}</small></button>`}).join('')}</div>`;
 }
 function renderFavs(){
   const fl=[...favs].map(byUrl).filter(i=>i>=0);
@@ -739,7 +750,7 @@ if(playerMode==='exo'&&!nativeAvail)playerMode='auto';
 const MODES=[['auto','Automático'],['exo','ExoPlayer (Media3)'],['hls','HLS.js'],['native','HTML5 nativo']];
 const modeLabel=()=>(MODES.find(m=>m[0]===playerMode)||MODES[0])[1];
 /* prévia: sempre 16:9, ~46% da altura da tela (nunca mais que 60% da largura) */
-function miniSize(){const W=innerWidth,H=innerHeight,top=H*0.03,hp=H*0.44,wp=Math.min(hp*16/9,W*0.6);return [wp,hp,W,H,top]}
+function miniSize(){const W=innerWidth,H=innerHeight,top=H*0.08,hp=H*0.32,wp=Math.min(hp*16/9,W*0.48);return [wp,hp,W,H,top]}
 function miniRect(){const [wp,hp,W,H,top]=miniSize();return [Math.max(0,(W-wp-W*0.02)/W),top/H,1-W*0.02/W,(top+hp)/H]}
 function layoutMini(){const [wp,hp,,,top]=miniSize(),s=document.documentElement.style;s.setProperty('--mw',wp+'px');s.setProperty('--mh',hp+'px');s.setProperty('--mt',top+'px')}
 layoutMini();addEventListener('resize',()=>{layoutMini();syncVideo()});
@@ -985,7 +996,7 @@ function closeMenu(){
 }
 function closeFull(){
   footMode=false;menuOpen=false;$('#pmenu').classList.remove('on');
-  const pv=view==='live'||view==='guide';
+  const pv=view==='live'||view==='guide'||view==='home';
   setMode(pv?'mini':'off');
   if(!pv)render();
   focusEl(main.querySelector(`[data-i="${lastFocus}"]`)||main.querySelector(`[data-gi="${lastFocus}"].now`)||main.querySelector(`[data-gi="${lastFocus}"]`)||main.querySelector('[data-f]'));
@@ -1082,7 +1093,9 @@ document.addEventListener('focusin',e=>{
 /* ---------- ações ---------- */
 function go(name){
   clearTimeout(tmr);
-  if(mode!=='off')setMode('off');
+  const keepMini=cur>=0&&(name==='home'||name==='live'||name==='guide');
+  if(mode!=='off')setMode(keepMini?'mini':'off');
+  else if(keepMini)setMode('mini');
   view=name;render();
   const first=view==='live'?(main.querySelector('.grow')||main.querySelector('.cat.on')):view==='guide'?(main.querySelector('.gp.now')||main.querySelector('.gp')||main.querySelector('[data-f]')):main.querySelector('.grow,[data-i],input,[data-f]');
   focusEl(first||document.querySelector('.rb'));
@@ -1090,6 +1103,20 @@ function go(name){
 document.addEventListener('click',e=>{
   const t=e.target.closest('button');if(!t)return;
   if(t.id==='hplay'){ctx=slideList.includes(heroIdx)?slideList.slice():[heroIdx];openFull(heroIdx);return}
+  if(t.dataset.mv!==undefined){
+    const i=+t.dataset.mv,u=ch[i].url;
+    if(multiUrls.has(u))multiUrls.delete(u);else multiUrls.add(u);
+    store.set('tv_multiview',[...multiUrls]);
+    const el=main.querySelector('[data-mv="'+i+'"]');if(el){el.classList.toggle('fav',multiUrls.has(u));const b=el.querySelector('b');if(b)b.textContent=(multiUrls.has(u)?'☑ ':'☐ ')+clean(ch[i].name)}
+    const start=$('#mvstart');if(start){const n=ch.filter(c=>multiUrls.has(c.url)).length;start.textContent='Zapear selecionados ('+n+')';start.disabled=!n}
+    return;
+  }
+  if(t.id==='mvclear'){multiUrls.clear();store.set('tv_multiview',[]);renderMulti();focusEl($('#mvstart'));return}
+  if(t.id==='mvstart'){
+    ctx=ch.map((c,i)=>multiUrls.has(c.url)?i:-1).filter(i=>i>=0);
+    if(!ctx.length){toast('Selecione pelo menos um canal');return}
+    openFull(ctx[0]);return;
+  }
   if(t.dataset.opt){
     const k=t.dataset.opt,o=OPTS[k],i=o.vals.indexOf(ui[k]);
     ui[k]=o.vals[(i+1)%o.vals.length];saveUI();applyUI();
