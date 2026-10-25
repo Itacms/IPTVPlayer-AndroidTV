@@ -59,12 +59,13 @@ svg{display:block;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:
 .grid{display:flex;flex-wrap:wrap;gap:1.6vw 1.2vw;padding:2vh 3vw}
 body.mv-active,html.mv-active{background:transparent!important}
 body.mv-active #app,body.mv-active #main{background:transparent!important}
-.mvtiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.6vw;padding:.5vh 2vw 1vh;height:65vh}
-.mvslot{position:relative;min-height:0;border:.15vw solid var(--line);border-radius:.65vw;overflow:hidden;background:transparent!important;display:flex;align-items:flex-end}
-.mvslot.selected{border-color:var(--red);box-shadow:inset 0 0 0 .15vw var(--red)}
-.mvlabel{width:100%;padding:.45vh .7vw;background:#09090bcc;color:#fff;font-size:1.05vw;display:flex;justify-content:space-between;align-items:center;gap:.5vw}
+.mvtiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-rows:auto;align-content:start;gap:1vh 1vw;padding:.5vh 2vw 1vh;height:auto}
+.mvslot{position:relative;display:block;min-width:0;width:100%;aspect-ratio:16/9;min-height:0;border:.18vw solid var(--line);border-radius:.65vw;overflow:hidden;background:transparent!important;padding:0;text-align:left;color:var(--txt);box-sizing:border-box}
+.mvslot.selected{border-color:var(--red);box-shadow:inset 0 0 0 .2vw var(--red);outline:.12vw solid var(--red)}
+.mvslot:focus{outline:.18vw solid var(--red);outline-offset:.12vw}
+.mvlabel{position:absolute;left:0;right:0;bottom:0;width:100%;box-sizing:border-box;padding:.45vh .7vw;background:#09090bcc;color:#fff;font-size:1.05vw;display:flex;justify-content:space-between;align-items:center;gap:.5vw}
 .mvlabel b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.mvlabel button{font-size:.9vw;background:#24242bdc;border-radius:.3vw;padding:.2vw .55vw;white-space:nowrap}
+.mvlabel .aud{font-size:.9vw;background:#24242bdc;border-radius:.3vw;padding:.2vw .55vw;white-space:nowrap;flex:none}
 .mvtools{display:flex;gap:.6vw;padding:.5vh 2vw 1vh}
 .srow{margin:1.2vh 3vw 0;display:flex;gap:1vw;align-items:center}
 .sn{flex:1;min-width:0;font-size:1.5vw;font-weight:600}
@@ -592,13 +593,40 @@ function renderMulti(){
   if(!ch.length){main.innerHTML='<div class="title">Multi Views</div><div class="empty">Carregue uma lista M3U nas Configurações primeiro.</div><div class="field"><button class="pill main" data-f data-v="cfg">Abrir Configurações</button></div>';return}
   const picked=ch.map((c,i)=>({c,i})).filter(x=>multiUrls.has(x.c.url));
   if(multiActive){
-    main.innerHTML='<div class="title">Multi Views · '+multiPicked.length+' canais</div><div class="sub">Imagem simultânea. Selecione “Áudio” no canal que deseja ouvir.</div><div class="mvtiles">'+multiPicked.map((i,k)=>'<div class="mvslot '+(k===multiAudio?'selected':'')+'" data-mvslot="'+k+'"><div class="mvlabel"><b>'+esc(clean(ch[i].name))+'</b><button data-f data-mvaudio="'+k+'">'+(k===multiAudio?'♪ Áudio ativo':'Ouvir áudio')+'</button></div></div>').join('')+'</div><div class="mvtools"><button class="pill main" data-f id="mvexit">Voltar à seleção</button><button class="pill" data-f id="mvstop">Encerrar Multi Views</button></div>';
+    main.innerHTML='<div class="title">Multi Views · '+multiPicked.length+' canais</div><div class="sub">Use as setas ou toque em um quadro para escolher o áudio.</div><div class="mvtiles">'+multiPicked.map((i,k)=>'<div class="mvslot '+(k===multiAudio?'selected':'')+'" tabindex="0" data-f data-mvslot="'+k+'"><div class="mvlabel"><b>'+esc(clean(ch[i].name))+'</b><span class="aud">'+(k===multiAudio?'♪ Áudio ativo':'Selecionar áudio')+'</span></div></div>').join('')+'</div><div class="mvtools"><button class="pill main" data-f id="mvexit">Voltar à seleção</button><button class="pill" data-f id="mvstop">Encerrar Multi Views</button></div>';
     requestAnimationFrame(syncMultiRects);return;
   }
   const pool=ch.map((c,i)=>({c,i})).slice(0,500);
   main.innerHTML=`<div class="title">Multi Views</div><div class="sub">Marque até 4 canais para assistir ao mesmo tempo. Depois escolha qual deles terá áudio.</div><div class="field" style="margin-top:1.2vh"><button class="pill main" data-f id="mvstart" ${picked.length?'':'disabled'}>Assistir simultaneamente (${picked.length}/4)</button><button class="pill" data-f id="mvclear">Limpar seleção</button></div><div class="grid" id="mvgrid">${pool.map(({c,i})=>{const on=multiUrls.has(c.url),e=epgNow(c);return `<button class="card ${on?'fav':''}" data-f data-mv="${i}"><span class="th">${logoHTML(c)}</span><b>${on?'☑ ':'☐ '}${esc(clean(c.name))}</b><small style="display:block;color:var(--mut);font-size:.9vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(e?epgLine(c):c.cat||'Canal de TV')}</small></button>`}).join('')}</div>`;
 }
 function syncMultiRects(){if(!multiActive||view!=='multi')return;[...main.querySelectorAll('[data-mvslot]')].forEach((el,i)=>{const r=el.getBoundingClientRect();try{Android.nMultiRect(i,r.left/innerWidth,r.top/innerHeight,r.right/innerWidth,r.bottom/innerHeight)}catch(e){}})}
+function selectMultiAudio(k){
+  if(!multiActive||k<0||k>=multiPicked.length)return;
+  multiAudio=k;
+  try{Android.nMultiAudio(k)}catch(e){}
+  main.querySelectorAll('[data-mvslot]').forEach((el,i)=>{
+    el.classList.toggle('selected',i===k);
+    const label=el.querySelector('.aud');if(label)label.textContent=i===k?'♪ Áudio ativo':'Selecionar áudio';
+  });
+}
+function moveMultiFocus(dir){
+  const slots=[...main.querySelectorAll('[data-mvslot]')];
+  if(!slots.length)return;
+  const active=document.activeElement&&document.activeElement.closest?document.activeElement.closest('[data-mvslot]'):null;
+  let from=active?slots.indexOf(active):multiAudio;
+  if(from<0)from=multiAudio;
+  const cur=slots[from].getBoundingClientRect(),cx=cur.left+cur.width/2,cy=cur.top+cur.height/2;
+  let best=-1,score=Infinity;
+  slots.forEach((el,i)=>{if(i===from)return;const r=el.getBoundingClientRect(),dx=r.left+r.width/2-cx,dy=r.top+r.height/2-cy;
+    let valid=dir==='R'?dx>2:dir==='L'?dx< -2:dir==='D'?dy>2:dy< -2;
+    if(!valid)return;
+    const primary=(dir==='R'||dir==='L')?Math.abs(dx):Math.abs(dy);
+    const secondary=(dir==='R'||dir==='L')?Math.abs(dy):Math.abs(dx);
+    const sc=primary+secondary*1.7;if(sc<score){score=sc;best=i}
+  });
+  if(best<0&&(dir==='R'||dir==='L'))best=(from+(dir==='R'?1:slots.length-1))%slots.length;
+  if(best>=0){slots[best].focus({preventScroll:true});selectMultiAudio(best)}
+}
 function beginMultiView(){
   multiPicked=ch.map((c,i)=>multiUrls.has(c.url)?i:-1).filter(i=>i>=0).slice(0,4);
   if(!multiPicked.length){toast('Selecione pelo menos um canal');return}
@@ -1066,6 +1094,9 @@ function move(dir){
   focusEl(best);
 }
 document.addEventListener('keydown',e=>{
+  if(multiActive&&view==='multi'&&['ArrowRight','ArrowLeft','ArrowUp','ArrowDown'].includes(e.key)){
+    e.preventDefault();moveMultiFocus(({ArrowRight:'R',ArrowLeft:'L',ArrowUp:'U',ArrowDown:'D'})[e.key]);return;
+  }
   if(mode==='full'){
     const mk={ArrowRight:'R',ArrowLeft:'L',ArrowDown:'D',ArrowUp:'U'};
     if(menuOpen){
@@ -1103,6 +1134,7 @@ document.addEventListener('keydown',e=>{
 });
 document.addEventListener('focusin',e=>{
   const t=e.target;
+  if(multiActive&&view==='multi'&&t.closest&&t.closest('[data-mvslot]')){selectMultiAudio(+t.closest('[data-mvslot]').dataset.mvslot);return}
   if(view==='live'){
     if(t.dataset.cat!==undefined&&t.dataset.cat!==cat){
       cat=t.dataset.cat;document.querySelectorAll('.cat').forEach(b=>b.classList.toggle('on',b===t));fillGuide();
@@ -1124,6 +1156,8 @@ function go(name){
   focusEl(first||document.querySelector('.rb'));
 }
 document.addEventListener('click',e=>{
+  const slot=e.target.closest('[data-mvslot]');
+  if(slot&&multiActive){const k=+slot.dataset.mvslot;selectMultiAudio(k);slot.focus({preventScroll:true});return}
   const t=e.target.closest('button');if(!t)return;
   if(t.id==='hplay'){ctx=slideList.includes(heroIdx)?slideList.slice():[heroIdx];openFull(heroIdx);return}
   if(t.dataset.mv!==undefined){
@@ -1138,7 +1172,7 @@ document.addEventListener('click',e=>{
   if(t.id==='mvclear'){multiUrls.clear();store.set('tv_multiview',[]);renderMulti();focusEl($('#mvstart'));return}
   if(t.id==='mvstart'){beginMultiView();return;}
   if(t.id==='mvexit'||t.id==='mvstop'){stopMultiView();renderMulti();focusEl($('#mvstart'));return;}
-  if(t.dataset.mvaudio!==undefined){multiAudio=+t.dataset.mvaudio;try{Android.nMultiAudio(multiAudio)}catch(e){}renderMulti();focusEl(main.querySelector('[data-mvaudio="'+multiAudio+'"]'));return;}
+  if(t.dataset.mvaudio!==undefined){selectMultiAudio(+t.dataset.mvaudio);return;}
   if(t.dataset.opt){
     const k=t.dataset.opt,o=OPTS[k],i=o.vals.indexOf(ui[k]);
     ui[k]=o.vals[(i+1)%o.vals.length];saveUI();applyUI();
