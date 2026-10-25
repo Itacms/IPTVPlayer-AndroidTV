@@ -602,7 +602,7 @@ function syncMultiRects(){if(!multiActive||view!=='multi')return;[...main.queryS
 function beginMultiView(){
   multiPicked=ch.map((c,i)=>multiUrls.has(c.url)?i:-1).filter(i=>i>=0).slice(0,4);
   if(!multiPicked.length){toast('Selecione pelo menos um canal');return}
-  multiAudio=0;multiActive=true;renderMulti();
+  multiAudio=0;multiActive=true;document.documentElement.classList.add('mv-active');document.body.classList.add('mv-active');renderMulti();
   setTimeout(()=>{const items=[...main.querySelectorAll('[data-mvslot]')].map((el,k)=>{const r=el.getBoundingClientRect();return {url:ch[multiPicked[k]].url,l:r.left/innerWidth,t:r.top/innerHeight,r:r.right/innerWidth,b:r.bottom/innerHeight}});try{Android.nMultiStart(JSON.stringify(items))}catch(e){toast('Multi Views nativo indisponível')};syncMultiRects()},100);
 }
 function stopMultiView(){multiActive=false;try{Android.nMultiStop()}catch(e){}document.documentElement.classList.remove('mv-active');document.body.classList.remove('mv-active')}
