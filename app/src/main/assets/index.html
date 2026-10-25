@@ -28,8 +28,8 @@ svg{display:block;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:
 .rb:focus{background:var(--ring);color:var(--bg)}
 
 #content{flex:1;min-width:0;display:flex;flex-direction:column}
-#tabs{display:flex;gap:.5vw;padding:1.4vh 2.6vw 0;height:8vh;align-items:flex-start}
-.tab{font-size:1.65vw;font-weight:600;padding:.3vw 1.25vw;border-radius:99px;color:var(--txt)}
+#tabs{display:flex;gap:.5vw;padding:1vh 2.6vw 0;height:6.2vh;align-items:flex-start}
+.tab{font-size:1.35vw;font-weight:600;padding:.25vw 1.05vw;border-radius:99px;color:var(--txt)}
 .tab.on{background:var(--tabon);color:var(--tabfg)}
 #main{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden}
 #main::-webkit-scrollbar{display:none}
@@ -57,6 +57,15 @@ svg{display:block;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:
 .card b{display:block;margin-top:.8vh;font-weight:500;font-size:1.2vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .card.fav::after{content:"";position:absolute;top:.6vw;right:.6vw;width:1.5vw;height:1.5vw;background:var(--red);border-radius:50%;box-shadow:0 0 0 .2vw #fff}
 .grid{display:flex;flex-wrap:wrap;gap:1.6vw 1.2vw;padding:2vh 3vw}
+body.mv-active,html.mv-active{background:transparent!important}
+body.mv-active #app,body.mv-active #main{background:transparent!important}
+.mvtiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.6vw;padding:.5vh 2vw 1vh;height:65vh}
+.mvslot{position:relative;min-height:0;border:.15vw solid var(--line);border-radius:.65vw;overflow:hidden;background:transparent!important;display:flex;align-items:flex-end}
+.mvslot.selected{border-color:var(--red);box-shadow:inset 0 0 0 .15vw var(--red)}
+.mvlabel{width:100%;padding:.45vh .7vw;background:#09090bcc;color:#fff;font-size:1.05vw;display:flex;justify-content:space-between;align-items:center;gap:.5vw}
+.mvlabel b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mvlabel button{font-size:.9vw;background:#24242bdc;border-radius:.3vw;padding:.2vw .55vw;white-space:nowrap}
+.mvtools{display:flex;gap:.6vw;padding:.5vh 2vw 1vh}
 .srow{margin:1.2vh 3vw 0;display:flex;gap:1vw;align-items:center}
 .sn{flex:1;min-width:0;font-size:1.5vw;font-weight:600}
 .sn small{display:block;color:var(--mut);font-size:1.1vw;font-weight:400}
@@ -258,6 +267,7 @@ let ch=[], favs=new Set(store.get('tv_favs',[])), recent=store.get('tv_recent',[
 let view='home', rows=[], ctx=[], cur=-1, loaded=-1, mode='off', hls=null, cat='Recentes', tmr=0, itmr=0, lastFocus=-1;
 const HEART='<svg viewBox="0 0 24 24"><path d="M12 21s-8-5.4-8-11a4.5 4.5 0 018-2.8A4.5 4.5 0 0120 10c0 5.6-8 11-8 11z"/></svg>';
 let multiUrls=new Set(store.get('tv_multiview',[]));
+let multiActive=false, multiAudio=0, multiPicked=[];
 
 /* ---------- lista M3U ---------- */
 /* ---------- temas, miniaturas, slide e fundo ---------- */
@@ -540,6 +550,8 @@ function gridHTML(idx){
 }
 function render(){
   rows=[];main.className=view;
+  document.documentElement.classList.toggle('mv-active',view==='multi'&&multiActive);
+  document.body.classList.toggle('mv-active',view==='multi'&&multiActive);
   document.querySelectorAll('[data-v]').forEach(b=>b.classList.toggle('on',b.dataset.v===view));
   ({home:renderHome,live:renderLive,guide:renderGuide,favs:renderFavs,multi:renderMulti,search:renderSearch,cfg:renderCfg})[view]();
 }
@@ -579,12 +591,21 @@ function renderHome(){
 function renderMulti(){
   if(!ch.length){main.innerHTML='<div class="title">Multi Views</div><div class="empty">Carregue uma lista M3U nas Configurações primeiro.</div><div class="field"><button class="pill main" data-f data-v="cfg">Abrir Configurações</button></div>';return}
   const picked=ch.map((c,i)=>({c,i})).filter(x=>multiUrls.has(x.c.url));
+  if(multiActive){
+    main.innerHTML='<div class="title">Multi Views · '+multiPicked.length+' canais</div><div class="sub">Imagem simultânea. Selecione “Áudio” no canal que deseja ouvir.</div><div class="mvtiles">'+multiPicked.map((i,k)=>'<div class="mvslot '+(k===multiAudio?'selected':'')+'" data-mvslot="'+k+'"><div class="mvlabel"><b>'+esc(clean(ch[i].name))+'</b><button data-f data-mvaudio="'+k+'">'+(k===multiAudio?'♪ Áudio ativo':'Ouvir áudio')+'</button></div></div>').join('')+'</div><div class="mvtools"><button class="pill main" data-f id="mvexit">Voltar à seleção</button><button class="pill" data-f id="mvstop">Encerrar Multi Views</button></div>';
+    requestAnimationFrame(syncMultiRects);return;
+  }
   const pool=ch.map((c,i)=>({c,i})).slice(0,500);
-  main.innerHTML=`<div class="title">Multi Views</div>
-    <div class="sub">Marque os canais que deseja incluir na sequência de zapping. O áudio será do canal que estiver em reprodução.</div>
-    <div class="field" style="margin-top:1.2vh"><button class="pill main" data-f id="mvstart" ${picked.length?'':'disabled'}>Zapear selecionados (${picked.length})</button><button class="pill" data-f id="mvclear">Limpar seleção</button></div>
-    <div class="grid" id="mvgrid">${pool.map(({c,i})=>{const on=multiUrls.has(c.url),e=epgNow(c);return `<button class="card ${on?'fav':''}" data-f data-mv="${i}"><span class="th">${logoHTML(c)}</span><b>${on?'☑ ':'☐ '}${esc(clean(c.name))}</b><small style="display:block;color:var(--mut);font-size:.9vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(e?epgLine(c):c.cat||'Canal de TV')}</small></button>`}).join('')}</div>`;
+  main.innerHTML=`<div class="title">Multi Views</div><div class="sub">Marque até 4 canais para assistir ao mesmo tempo. Depois escolha qual deles terá áudio.</div><div class="field" style="margin-top:1.2vh"><button class="pill main" data-f id="mvstart" ${picked.length?'':'disabled'}>Assistir simultaneamente (${picked.length}/4)</button><button class="pill" data-f id="mvclear">Limpar seleção</button></div><div class="grid" id="mvgrid">${pool.map(({c,i})=>{const on=multiUrls.has(c.url),e=epgNow(c);return `<button class="card ${on?'fav':''}" data-f data-mv="${i}"><span class="th">${logoHTML(c)}</span><b>${on?'☑ ':'☐ '}${esc(clean(c.name))}</b><small style="display:block;color:var(--mut);font-size:.9vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(e?epgLine(c):c.cat||'Canal de TV')}</small></button>`}).join('')}</div>`;
 }
+function syncMultiRects(){if(!multiActive||view!=='multi')return;[...main.querySelectorAll('[data-mvslot]')].forEach((el,i)=>{const r=el.getBoundingClientRect();try{Android.nMultiRect(i,r.left/innerWidth,r.top/innerHeight,r.right/innerWidth,r.bottom/innerHeight)}catch(e){}})}
+function beginMultiView(){
+  multiPicked=ch.map((c,i)=>multiUrls.has(c.url)?i:-1).filter(i=>i>=0).slice(0,4);
+  if(!multiPicked.length){toast('Selecione pelo menos um canal');return}
+  multiAudio=0;multiActive=true;renderMulti();
+  setTimeout(()=>{const items=[...main.querySelectorAll('[data-mvslot]')].map((el,k)=>{const r=el.getBoundingClientRect();return {url:ch[multiPicked[k]].url,l:r.left/innerWidth,t:r.top/innerHeight,r:r.right/innerWidth,b:r.bottom/innerHeight}});try{Android.nMultiStart(JSON.stringify(items))}catch(e){toast('Multi Views nativo indisponível')};syncMultiRects()},100);
+}
+function stopMultiView(){multiActive=false;try{Android.nMultiStop()}catch(e){}document.documentElement.classList.remove('mv-active');document.body.classList.remove('mv-active')}
 function renderFavs(){
   const fl=[...favs].map(byUrl).filter(i=>i>=0);
   main.innerHTML=`<div class="title">Favoritos</div><div class="sub">${fl.length} canais</div>`+(fl.length?gridHTML(fl):`<div class="empty">Nenhum favorito ainda. Durante a reprodução, aperte OK para favoritar o canal.</div>`);
@@ -753,7 +774,7 @@ const modeLabel=()=>(MODES.find(m=>m[0]===playerMode)||MODES[0])[1];
 function miniSize(){const W=innerWidth,H=innerHeight,top=H*0.08,hp=H*0.32,wp=Math.min(hp*16/9,W*0.48);return [wp,hp,W,H,top]}
 function miniRect(){const [wp,hp,W,H,top]=miniSize();return [Math.max(0,(W-wp-W*0.02)/W),top/H,1-W*0.02/W,(top+hp)/H]}
 function layoutMini(){const [wp,hp,,,top]=miniSize(),s=document.documentElement.style;s.setProperty('--mw',wp+'px');s.setProperty('--mh',hp+'px');s.setProperty('--mt',top+'px')}
-layoutMini();addEventListener('resize',()=>{layoutMini();syncVideo()});
+layoutMini();addEventListener('resize',()=>{layoutMini();syncVideo();syncMultiRects()});
 let isNative=false,nPaused=false,curEngine='web',chkT=0,stickyMsg=false,tried={};
 const engMemo=store.get('tv_engmemo',{});
 const diagLog=[];
@@ -996,7 +1017,7 @@ function closeMenu(){
 }
 function closeFull(){
   footMode=false;menuOpen=false;$('#pmenu').classList.remove('on');
-  const pv=view==='live'||view==='guide'||view==='home';
+  const pv=view==='home';
   setMode(pv?'mini':'off');
   if(!pv)render();
   focusEl(main.querySelector(`[data-i="${lastFocus}"]`)||main.querySelector(`[data-gi="${lastFocus}"].now`)||main.querySelector(`[data-gi="${lastFocus}"]`)||main.querySelector('[data-f]'));
@@ -1093,7 +1114,9 @@ document.addEventListener('focusin',e=>{
 /* ---------- ações ---------- */
 function go(name){
   clearTimeout(tmr);
-  const keepMini=cur>=0&&(name==='home'||name==='live'||name==='guide');
+  if(view==='multi'&&multiActive&&name!=='multi')stopMultiView();
+  const keepMini=cur>=0&&name==='home';
+  if(name==='home'&&cur>=0&&loaded<0)load(cur);
   if(mode!=='off')setMode(keepMini?'mini':'off');
   else if(keepMini)setMode('mini');
   view=name;render();
@@ -1112,11 +1135,9 @@ document.addEventListener('click',e=>{
     return;
   }
   if(t.id==='mvclear'){multiUrls.clear();store.set('tv_multiview',[]);renderMulti();focusEl($('#mvstart'));return}
-  if(t.id==='mvstart'){
-    ctx=ch.map((c,i)=>multiUrls.has(c.url)?i:-1).filter(i=>i>=0);
-    if(!ctx.length){toast('Selecione pelo menos um canal');return}
-    openFull(ctx[0]);return;
-  }
+  if(t.id==='mvstart'){beginMultiView();return;}
+  if(t.id==='mvexit'||t.id==='mvstop'){stopMultiView();renderMulti();focusEl($('#mvstart'));return;}
+  if(t.dataset.mvaudio!==undefined){multiAudio=+t.dataset.mvaudio;try{Android.nMultiAudio(multiAudio)}catch(e){}renderMulti();focusEl(main.querySelector('[data-mvaudio="'+multiAudio+'"]'));return;}
   if(t.dataset.opt){
     const k=t.dataset.opt,o=OPTS[k],i=o.vals.indexOf(ui[k]);
     ui[k]=o.vals[(i+1)%o.vals.length];saveUI();applyUI();
