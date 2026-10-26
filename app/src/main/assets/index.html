@@ -202,6 +202,79 @@ input:focus{border-color:var(--ring)}
 .pill.main{background:var(--red);color:#fff}
 #toast{position:fixed;top:3vh;right:3vw;z-index:20;background:var(--txt);color:var(--bg);padding:1vh 1.8vw;border-radius:99px;font-weight:600;opacity:0;transition:opacity .25s}
 #toast.on{opacity:1}
+
+/* Ajustes para celulares: mantém os vídeos em 16:9 e evita que o Multi Views corte os quadros */
+@media (max-width:700px), (orientation:portrait) and (max-width:900px){
+  html,body{font-size:14px;overflow:hidden}
+  #app{height:100dvh}
+  #rail{width:48px;padding:12px 0}
+  .brand{font-size:12px}
+  .ri{gap:18px;margin-top:28px}
+  .rb{width:36px;height:36px;border-radius:8px}
+  .rb svg{width:20px;height:20px}
+  #content{min-width:0}
+  #tabs{height:48px;gap:6px;padding:6px 8px 0;overflow-x:auto;overflow-y:hidden;flex:none;white-space:nowrap}
+  #tabs::-webkit-scrollbar{display:none}
+  .tab{flex:none;font-size:13px;padding:6px 11px}
+  #main{min-height:0}
+  .title{font-size:20px;margin:12px 14px 0}
+  .sub{font-size:12px;margin:5px 14px}
+  .field{margin:12px 14px 0;gap:8px}
+  .pill{font-size:13px;padding:9px 14px}
+  .grid{gap:12px 8px;padding:12px}
+  .card{width:calc((100% - 16px)/3);border-radius:6px}
+  .th{border-radius:6px}
+  .card b{font-size:11px;margin-top:4px}
+  .card small{font-size:10px!important}
+  .live{height:100%;min-height:0}
+  .lhead{left:12px;right:12px;top:8px;width:auto}
+  .lm{font-size:12px}
+  .lhead h1{font-size:21px}
+  .lhead p{font-size:11px}
+  .lbody{top:26vh;bottom:0;gap:6px;padding:0 6px}
+  .cats{width:90px;padding:4px 2px}
+  .cat{font-size:11px;padding:7px 6px;border-radius:6px;margin-bottom:4px}
+  .cat small{font-size:9px}
+  .guide{min-width:0;padding:4px 2px}
+  .grow{height:48px;gap:4px;margin-bottom:4px}
+  .glogo{width:46px;border-radius:4px}
+  .glogo i{font-size:10px}
+  .gbar{gap:4px;padding:0 6px;border-radius:4px}
+  .gbar b{font-size:10px;max-width:58%}
+  .gbar .ep{font-size:9px}
+  .gbar small{font-size:9px}
+  /* Guia de programação em formato compacto, mantendo os blocos de horário navegáveis */
+  .gpills{left:12px;top:12px}
+  .gscroll{top:70px;scroll-padding-left:100px;padding-bottom:20px}
+  .gruler{height:30px}
+  .gcorner,.gch{width:100px}
+  .gch{gap:5px;padding:0 5px;background:var(--bg)}
+  .gl{width:32px;border-radius:3px}
+  .gl i{font-size:9px}
+  .gch b{font-size:10px}
+  .gr{height:48px;margin-bottom:5px}
+  .gtick{font-size:10px}
+  .gp{font-size:10px;padding:0 5px;border-radius:4px}
+  .gp small{font-size:9px}
+  /* Multi Views: uma coluna no celular para que cada canal tenha quadro 16:9 real */
+  .mvtiles{grid-template-columns:minmax(0,1fr);grid-auto-rows:auto;gap:8px;padding:8px 10px;height:auto;align-content:start}
+  .mvslot{width:100%;aspect-ratio:16/9;min-height:0;border-width:2px;border-radius:7px}
+  .mvlabel{padding:5px 7px;font-size:12px;gap:6px}
+  .mvlabel .aud{font-size:10px;padding:3px 6px}
+  .mvtools{gap:6px;padding:8px 10px;flex-wrap:wrap}
+  .mvtools .pill{font-size:12px;padding:8px 11px}
+  #mvgrid .card{width:calc((100% - 16px)/3)}
+  #v.mini{width:44vw;height:auto;aspect-ratio:16/9;object-fit:contain;top:8px;right:8px}
+  .hero{height:auto;min-height:38vh;padding:18px 14px 0;gap:10px}
+  .hx{max-width:58vw}
+  .hero h1{font-size:26px}
+  .hero p{font-size:12px}
+  .hl{width:34vw;border-radius:6px}
+  .hl i{font-size:24px}
+  .row h2{font-size:15px;margin:12px 14px 0}
+  .strip{gap:8px;padding:10px 14px 16px}
+}
+
 </style>
 </head>
 <body>
@@ -600,6 +673,11 @@ function renderMulti(){
   main.innerHTML=`<div class="title">Multi Views</div><div class="sub">Marque até 4 canais para assistir ao mesmo tempo. Depois escolha qual deles terá áudio.</div><div class="field" style="margin-top:1.2vh"><button class="pill main" data-f id="mvstart" ${picked.length?'':'disabled'}>Assistir simultaneamente (${picked.length}/4)</button><button class="pill" data-f id="mvclear">Limpar seleção</button></div><div class="grid" id="mvgrid">${pool.map(({c,i})=>{const on=multiUrls.has(c.url),e=epgNow(c);return `<button class="card ${on?'fav':''}" data-f data-mv="${i}"><span class="th">${logoHTML(c)}</span><b>${on?'☑ ':'☐ '}${esc(clean(c.name))}</b><small style="display:block;color:var(--mut);font-size:.9vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(e?epgLine(c):c.cat||'Canal de TV')}</small></button>`}).join('')}</div>`;
 }
 function syncMultiRects(){if(!multiActive||view!=='multi')return;[...main.querySelectorAll('[data-mvslot]')].forEach((el,i)=>{const r=el.getBoundingClientRect();try{Android.nMultiRect(i,r.left/innerWidth,r.top/innerHeight,r.right/innerWidth,r.bottom/innerHeight)}catch(e){}})}
+
+// Recalcula os retângulos nativos do Multi Views após rotação ou redimensionamento.
+window.addEventListener('resize',()=>{if(multiActive&&view==='multi')requestAnimationFrame(syncMultiRects)});
+window.addEventListener('orientationchange',()=>{if(multiActive&&view==='multi')setTimeout(syncMultiRects,180)});
+
 function selectMultiAudio(k){
   if(!multiActive||k<0||k>=multiPicked.length)return;
   multiAudio=k;
