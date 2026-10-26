@@ -881,7 +881,7 @@ const MODES=[['auto','Automático'],['exo','ExoPlayer (Media3)'],['hls','HLS.js'
 const modeLabel=()=>(MODES.find(m=>m[0]===playerMode)||MODES[0])[1];
 /* prévia: sempre 16:9, ~46% da altura da tela (nunca mais que 60% da largura) */
 function miniSize(){const W=innerWidth,H=innerHeight,home=view==='home',hp=Math.min(H*(home?0.29:0.348),H*0.42),wp=Math.min(hp*16/9*(home?1:1.2),W*(home?0.45:0.54)),top=home?H*0.62:H*0.13;return [wp,hp,W,H,top,home]}
-function miniRect(){const [wp,hp,W,H,top,home]=miniSize();const left=home?W*0.025:W-wp-W*0.02, y=home?H-hp-H*0.025:top;return [left/W,y/H,wp/W,(y+hp)/H]}
+function miniRect(){const [wp,hp,W,H,top,home]=miniSize();const left=home?W*0.025:W-wp-W*0.02, y=home?H-hp-H*0.025:top;return [left/W,y/H,(left+wp)/W,(y+hp)/H]}
 function layoutMini(){const [wp,hp,W,H,top,home]=miniSize(),s=document.documentElement.style;s.setProperty('--mw',wp+'px');s.setProperty('--mh',hp+'px');s.setProperty('--mt',top+'px');s.setProperty('--pip-left',home?'2.5vw':'auto');s.setProperty('--pip-bottom',home?'2.5vh':'auto');s.setProperty('--pip-top',home?'auto':top+'px');s.setProperty('--pip-right',home?'auto':'2vw')}
 layoutMini();addEventListener('resize',()=>{layoutMini();syncVideo();syncMultiRects()});
 let isNative=false,nPaused=false,curEngine='web',chkT=0,stickyMsg=false,tried={};
