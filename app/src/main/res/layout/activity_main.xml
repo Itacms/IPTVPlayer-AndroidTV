@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/root"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:background="#0B0B0D">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="56dp"
+        android:gravity="center_vertical" android:paddingHorizontal="20dp" android:orientation="horizontal"
+        android:background="#111116">
+        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+            android:text="PLAYER IPTV" android:textColor="#FFFFFF" android:textStyle="bold" android:textSize="20sp"/>
+        <Button android:id="@+id/addList" android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="Adicionar lista"/>
+    </LinearLayout>
+    <HorizontalScrollView android:layout_width="match_parent" android:layout_height="wrap_content" android:fillViewport="true"
+        android:scrollbars="none" android:background="#17171C">
+        <LinearLayout android:layout_width="wrap_content" android:layout_height="48dp" android:orientation="horizontal">
+            <Button android:id="@+id/tabHome" android:layout_width="wrap_content" android:layout_height="match_parent" android:text="Início"/>
+            <Button android:id="@+id/tabLive" android:layout_width="wrap_content" android:layout_height="match_parent" android:text="Ao vivo"/>
+            <Button android:id="@+id/tabGuide" android:layout_width="wrap_content" android:layout_height="match_parent" android:text="Guia"/>
+            <Button android:id="@+id/tabLists" android:layout_width="wrap_content" android:layout_height="match_parent" android:text="Listas"/>
+        </LinearLayout>
+    </HorizontalScrollView>
+    <FrameLayout android:id="@+id/content" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1">
+        <ScrollView android:id="@+id/homePanel" android:layout_width="match_parent" android:layout_height="match_parent">
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="24dp">
+                <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Sua TV, do seu jeito"
+                    android:textColor="#FFFFFF" android:textSize="30sp" android:textStyle="bold"/>
+                <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp"
+                    android:text="Adicione uma lista M3U para começar a assistir." android:textColor="#B7B7C2" android:textSize="16sp"/>
+                <TextView android:id="@+id/homeSummary" android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:layout_marginTop="24dp" android:text="Nenhuma lista carregada" android:textColor="#FFFFFF" android:textSize="18sp"/>
+                <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="24dp"
+                    android:text="Canais recentes" android:textColor="#FFFFFF" android:textSize="20sp" android:textStyle="bold"/>
+                <LinearLayout android:id="@+id/recentChannels" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical"/>
+            </LinearLayout>
+        </ScrollView>
+        <LinearLayout android:id="@+id/channelsPanel" android:layout_width="match_parent" android:layout_height="match_parent"
+            android:orientation="vertical" android:visibility="gone">
+            <TextView android:id="@+id/panelTitle" android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:padding="16dp" android:text="Canais" android:textColor="#FFFFFF" android:textSize="22sp" android:textStyle="bold"/>
+            <ScrollView android:layout_width="match_parent" android:layout_height="match_parent">
+                <LinearLayout android:id="@+id/channelList" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical"/>
+            </ScrollView>
+        </LinearLayout>
+        <LinearLayout android:id="@+id/listsPanel" android:layout_width="match_parent" android:layout_height="match_parent"
+            android:orientation="vertical" android:padding="20dp" android:visibility="gone">
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Fontes de conteúdo"
+                android:textColor="#FFFFFF" android:textSize="22sp" android:textStyle="bold"/>
+            <TextView android:id="@+id/listSummary" android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="12dp" android:text="Nenhuma lista adicionada." android:textColor="#B7B7C2" android:textSize="16sp"/>
+            <Button android:id="@+id/addUrl" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:layout_marginTop="16dp" android:text="Adicionar URL M3U"/>
+            <Button android:id="@+id/addFile" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Abrir arquivo M3U"/>
+        </LinearLayout>
+        <LinearLayout android:id="@+id/playerPanel" android:layout_width="match_parent" android:layout_height="match_parent"
+            android:orientation="vertical" android:visibility="gone" android:background="#000000">
+            <androidx.media3.ui.PlayerView android:id="@+id/playerView" android:layout_width="match_parent"
+                android:layout_height="0dp" android:layout_weight="1" app:use_controller="true" app:show_buffering="when_playing"/>
+            <TextView android:id="@+id/playingTitle" android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:padding="16dp" android:textColor="#FFFFFF" android:textSize="18sp"/>
+            <Button android:id="@+id/backToChannels" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Voltar aos canais"/>
+        </LinearLayout>
+    </FrameLayout>
+</LinearLayout>
