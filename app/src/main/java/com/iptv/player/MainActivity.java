@@ -44,6 +44,7 @@ public class MainActivity extends Activity {
     private android.content.SharedPreferences prefs;
     private ExoPlayer player;
     private PlayerView playerView;
+    private android.widget.FrameLayout playerContainer;
     private LinearLayout homePanel, channelsPanel, listsPanel, playerPanel, channelList, recentChannels;
     private TextView homeSummary, listSummary, panelTitle, playingTitle;
     private String currentSource = "";
@@ -74,7 +75,7 @@ public class MainActivity extends Activity {
         channelList=findViewById(R.id.channelList); recentChannels=findViewById(R.id.recentChannels);
         homeSummary=findViewById(R.id.homeSummary); listSummary=findViewById(R.id.listSummary);
         panelTitle=findViewById(R.id.panelTitle); playingTitle=findViewById(R.id.playingTitle);
-        playerView=findViewById(R.id.playerView);
+        playerContainer=findViewById(R.id.playerContainer);
     }
 
     private void bindActions() {
@@ -229,6 +230,12 @@ public class MainActivity extends Activity {
         try {
             if (player==null) {
                 player=new ExoPlayer.Builder(this).build();
+                playerView=new PlayerView(this);
+                playerView.setUseController(true);
+                playerView.setShowBuffering(androidx.media3.ui.PlayerView.SHOW_BUFFERING_WHEN_PLAYING);
+                playerContainer.removeAllViews();
+                playerContainer.addView(playerView, new android.widget.FrameLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
                 playerView.setPlayer(player);
                 player.addListener(new Player.Listener() {
                     @Override public void onPlayerError(androidx.media3.common.PlaybackException error) {
