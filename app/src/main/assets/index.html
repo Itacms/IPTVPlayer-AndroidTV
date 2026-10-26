@@ -277,7 +277,6 @@ input:focus{border-color:var(--ring)}
 
 
 #v.mini{z-index:12}
-#v.mini.home-pip{left:var(--pip-left,2.5vw);right:auto;top:auto;bottom:var(--pip-bottom,2.5vh);width:var(--mw,40vw);height:var(--mh,29vh);z-index:30;box-shadow:0 4px 22px #000b;border:2px solid #fff8;border-radius:8px}
 </style>
 </head>
 <body>
@@ -1013,17 +1012,19 @@ function playSafe(){
 function stop(){stopAll();loaded=-1}
 function syncVideo(){
   const nat=isNative;
-  v.className=(mode==='off'||nat)?'':mode;
-  v.classList.toggle('home-pip',view==='home'&&mode==='mini');
-  v.style.objectFit=mode==='full'?RATIOS[ri][1]:'';
-  pov.classList.toggle('on',mode==='full');
-  document.body.classList.toggle('nfull',nat&&mode==='full');
-  $('#pfade').className=(nat&&mode==='mini')?'on':'';
-  const muted=mode==='full'?false:(mode==='mini'?!ui.previewAudio:true);
+  // A prévia flutuante não aparece na tela inicial.
+  const displayMode=view==='home'?'off':mode;
+  v.className=(displayMode==='off'||nat)?'':displayMode;
+  v.classList.remove('home-pip');
+  v.style.objectFit=displayMode==='full'?RATIOS[ri][1]:'';
+  pov.classList.toggle('on',displayMode==='full');
+  document.body.classList.toggle('nfull',nat&&displayMode==='full');
+  $('#pfade').className=(nat&&displayMode==='mini')?'on':'';
+  const muted=displayMode==='full'?false:(displayMode==='mini'?!ui.previewAudio:true);
   v.muted=muted;
   if(nat){
-    const r=mode==='full'?[0,0,1,1]:miniRect();
-    try{Android.nRect(r[0],r[1],r[2],r[3]);Android.nFit(mode==='full'?ri:0);Android.nMute(muted)}catch(e){}
+    const r=displayMode==='full'?[0,0,1,1]:displayMode==='mini'?miniRect():[0,0,0,0];
+    try{Android.nRect(r[0],r[1],r[2],r[3]);Android.nFit(displayMode==='full'?ri:0);Android.nMute(muted)}catch(e){}
   }
 }
 function setMode(m){
