@@ -106,7 +106,7 @@ body.nfull #app{visibility:hidden}
 
 /* vídeo */
 #v{display:none;background:#000}
-#v.mini{display:block;position:fixed;z-index:0;top:var(--mt,8vh);right:2vw;width:var(--mw,48vw);height:var(--mh,32vh);object-fit:contain;
+#v.mini{display:block;position:fixed;z-index:30;top:var(--mt,8vh);right:2vw;width:var(--mw,48vw);height:var(--mh,32vh);object-fit:contain;
   -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 16%);mask-image:linear-gradient(90deg,transparent 0,#000 16%)}
 #v.full{display:block;position:fixed;z-index:8;inset:0;width:100%;height:100%;object-fit:contain}
 #pov{position:fixed;inset:0;z-index:9;display:none;color:#fff}
@@ -277,7 +277,7 @@ input:focus{border-color:var(--ring)}
 
 
 #v.mini{z-index:12}
-#v.mini.home-pip{left:var(--pip-left,auto);right:var(--pip-right,2vw);top:var(--pip-top,var(--mt,8vh));bottom:var(--pip-bottom,auto);width:var(--mw,48vw);height:var(--mh,32vh);z-index:12;box-shadow:0 4px 22px #000b;border:2px solid #fff8;border-radius:8px}
+#v.mini.home-pip{left:var(--pip-left,2.5vw);right:auto;top:auto;bottom:var(--pip-bottom,2.5vh);width:var(--mw,40vw);height:var(--mh,29vh);z-index:30;box-shadow:0 4px 22px #000b;border:2px solid #fff8;border-radius:8px}
 </style>
 </head>
 <body>
@@ -881,7 +881,7 @@ const MODES=[['auto','Automático'],['exo','ExoPlayer (Media3)'],['hls','HLS.js'
 const modeLabel=()=>(MODES.find(m=>m[0]===playerMode)||MODES[0])[1];
 /* prévia: sempre 16:9, ~46% da altura da tela (nunca mais que 60% da largura) */
 function miniSize(){const W=innerWidth,H=innerHeight,home=view==='home',hp=Math.min(H*(home?0.29:0.348),H*0.42),wp=Math.min(hp*16/9*(home?1:1.2),W*(home?0.45:0.54)),top=home?H*0.62:H*0.13;return [wp,hp,W,H,top,home]}
-function miniRect(){const [wp,hp,W,H,top,home]=miniSize();return [home?0.025:Math.max(0,(W-wp-W*0.02)/W),top/H,wp/W,(top+hp)/H]}
+function miniRect(){const [wp,hp,W,H,top,home]=miniSize();const left=home?W*0.025:W-wp-W*0.02, y=home?H-hp-H*0.025:top;return [left/W,y/H,wp/W,(y+hp)/H]}
 function layoutMini(){const [wp,hp,W,H,top,home]=miniSize(),s=document.documentElement.style;s.setProperty('--mw',wp+'px');s.setProperty('--mh',hp+'px');s.setProperty('--mt',top+'px');s.setProperty('--pip-left',home?'2.5vw':'auto');s.setProperty('--pip-bottom',home?'2.5vh':'auto');s.setProperty('--pip-top',home?'auto':top+'px');s.setProperty('--pip-right',home?'auto':'2vw')}
 layoutMini();addEventListener('resize',()=>{layoutMini();syncVideo();syncMultiRects()});
 let isNative=false,nPaused=false,curEngine='web',chkT=0,stickyMsg=false,tried={};
@@ -1014,6 +1014,7 @@ function stop(){stopAll();loaded=-1}
 function syncVideo(){
   const nat=isNative;
   v.className=(mode==='off'||nat)?'':mode;
+  v.classList.toggle('home-pip',view==='home'&&mode==='mini');
   v.style.objectFit=mode==='full'?RATIOS[ri][1]:'';
   pov.classList.toggle('on',mode==='full');
   document.body.classList.toggle('nfull',nat&&mode==='full');
