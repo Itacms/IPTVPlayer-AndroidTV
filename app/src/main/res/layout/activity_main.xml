@@ -56,8 +56,7 @@
         </LinearLayout>
         <LinearLayout android:id="@+id/playerPanel" android:layout_width="match_parent" android:layout_height="match_parent"
             android:orientation="vertical" android:visibility="gone" android:background="#000000">
-            <androidx.media3.ui.PlayerView android:id="@+id/playerView" android:layout_width="match_parent"
-                android:layout_height="0dp" android:layout_weight="1" app:use_controller="true" app:show_buffering="when_playing"/>
+            <FrameLayout android:id="@+id/playerContainer" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" />
             <TextView android:id="@+id/playingTitle" android:layout_width="match_parent" android:layout_height="wrap_content"
                 android:padding="16dp" android:textColor="#FFFFFF" android:textSize="18sp"/>
             <Button android:id="@+id/backToChannels" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Voltar aos canais"/>
