@@ -319,7 +319,11 @@ class MainActivity : Activity() {
                 player = ExoPlayer.Builder(this).build().also { exoPlayer ->
                     playerView = PlayerView(this).apply {
                         useController = true
+                        setControllerAutoShow(false)
+                        setControllerShowTimeoutMs(8_000)
                         showBuffering = PlayerView.SHOW_BUFFERING_WHEN_PLAYING
+                        isFocusable = true
+                        isFocusableInTouchMode = true
                         setPlayer(exoPlayer)
                     }
                     playerContainer.removeAllViews()
@@ -369,13 +373,38 @@ class MainActivity : Activity() {
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
-        if (keyCode == KeyEvent.KEYCODE_BACK && playerPanel.visibility == View.VISIBLE) {
-            stopPlayback()
-            renderChannels()
-            showTab("channels")
-            return true
+        if (playerPanel.visibility == View.VISIBLE) {
+            if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER ||
+                keyCode == KeyEvent.KEYCODE_ENTER ||
+                keyCode == KeyEvent.KEYCODE_NUMPAD_ENTER
+            ) {
+                // OK on the TV remote explicitly opens the Media3 player controls.
+                // Move focus into the visible controls so the D-pad can navigate them.
+                playerView?.showController()
+                playerView?.post { focusFirstPlayerControl(playerView) }
+                return true
+            }
+            if (keyCode == KeyEvent.KEYCODE_BACK) {
+                stopPlayback()
+                renderChannels()
+                showTab("channels")
+                return true
+            }
         }
         return super.onKeyDown(keyCode, event)
+    }
+
+    private fun focusFirstPlayerControl(root: View?) {
+        if (root !is ViewGroup) return
+        for (index in 0 until root.childCount) {
+            val child = root.getChildAt(index)
+            if (child.visibility != View.VISIBLE) continue
+            if (child.isFocusable && child.requestFocus()) return
+            if (child is ViewGroup) {
+                focusFirstPlayerControl(child)
+                if (child.hasFocus()) return
+            }
+        }
     }
 
     override fun onPause() {
