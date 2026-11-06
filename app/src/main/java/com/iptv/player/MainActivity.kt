@@ -321,7 +321,7 @@ class MainActivity : Activity() {
                         useController = true
                         setControllerAutoShow(false)
                         setControllerShowTimeoutMs(8_000)
-                        showBuffering = PlayerView.SHOW_BUFFERING_WHEN_PLAYING
+                        setShowBuffering(PlayerView.SHOW_BUFFERING_WHEN_PLAYING)
                         isFocusable = true
                         isFocusableInTouchMode = true
                         setPlayer(exoPlayer)
